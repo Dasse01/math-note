@@ -48,7 +48,7 @@
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body { font-family:'Noto Sans KR', sans-serif; background:var(--bg-page); overscroll-behavior:none; }
+body { font-family:'Noto Sans KR', sans-serif; background:var(--bg-page); overscroll-behavior:none;overflow-x:auto; }
 
 /* ══════════════════════════════════
    컨트롤 패널
@@ -144,7 +144,7 @@ body { font-family:'Noto Sans KR', sans-serif; background:var(--bg-page); oversc
 .pages {
   padding-top: calc(54px + env(safe-area-inset-top));
   padding-bottom:48px;
-  display:flex; flex-direction:column; align-items:center; gap:24px;
+  display:flex; flex-direction:column; align-items:center; gap:24px; min-width:fit-content;
   padding-left:12px; padding-right:12px;
 }
 
