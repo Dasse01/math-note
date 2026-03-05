@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="시대오답노트">
+<meta name="theme-color" content="#111827">
+<title>시대학원 수학 오답노트</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Noto+Serif+KR:wght@400;600;700;900&display=swap');
+:root {
+  --ink:#0a0a0a; --red:#dc2626; --red-light:#fef2f2; --red-mid:#fca5a5;
+  --gray:#555; --gray-light:#999; --border:#aaa; --bg:#e0e0e0; --lh:28px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);overscroll-behavior:none;}
+
+/* ── 컨트롤 ── */
+.controls{
+  position:fixed;top:0;left:0;right:0;z-index:300;
+  background:#111827;color:white;
+  padding:7px 12px;padding-top:calc(7px + env(safe-area-inset-top));
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
+}
+.cg{display:flex;align-items:center;gap:5px;}
+.cs{width:1px;height:22px;background:#374151;flex-shrink:0;}
+.cl{font-size:.7rem;font-weight:500;color:#94a3b8;white-space:nowrap;}
+.controls input[type=number]{
+  width:52px;padding:4px 6px;border:1px solid #374151;border-radius:5px;
+  background:#1f2937;color:white;font-family:inherit;font-size:.75rem;text-align:center;
+}
+.cb{
+  padding:5px 11px;border:none;border-radius:5px;
+  font-family:inherit;font-size:.73rem;font-weight:700;cursor:pointer;
+  transition:all .12s;white-space:nowrap;user-select:none;
+}
+.cb.add    {background:#1d4ed8;color:white;}
+.cb.reset  {background:#374151;color:#d1d5db;}
+.cb.print  {background:#166534;color:white;}
+.cb.simg   {background:#0e7490;color:white;}
+.cb.spdf   {background:#7e22ce;color:white;}
+.cb.pen    {background:#1e3a5f;color:#93c5fd;border:1.5px solid #1e3a5f;}
+.cb.pen.on {background:#2563eb;color:white;border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.4);}
+.cb.hl     {background:#451a03;color:#fcd34d;border:1.5px solid #451a03;}
+.cb.hl.on  {background:#b45309;color:white;border-color:#fbbf24;}
+.cb.erase  {background:#1c1917;color:#a8a29e;border:1.5px solid #292524;}
+.cb.erase.on{background:#78350f;color:white;border-color:#f97316;}
+.cb.clr    {background:#450a0a;color:#fca5a5;}
+.palette{display:flex;gap:4px;align-items:center;}
+.sw{width:18px;height:18px;border-radius:50%;border:2px solid #374151;cursor:pointer;transition:transform .1s,border-color .1s;flex-shrink:0;}
+.sw.on{border-color:#fff;transform:scale(1.15);}
+.thk{display:flex;gap:4px;align-items:center;}
+.tb{border:1.5px solid #374151;background:#1f2937;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:28px;height:22px;}
+.tb.on{border-color:#60a5fa;background:#1e3a5f;}
+.td{background:white;border-radius:50%;}
+
+/* ── 모드배지 ── */
+.mbadge{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  padding:8px 22px;border-radius:20px;font:600 .78rem/1 'Noto Sans KR';z-index:400;
+  pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.mbadge.show{display:block;}
+.mbadge.pen-mode{background:#1d4ed8;color:white;}
+.mbadge.hl-mode{background:#b45309;color:white;}
+.mbadge.erase-mode{background:#78350f;color:white;}
+
+/* ── 토스트 ── */
+#toast{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#1e293b;color:white;padding:10px 22px;border-radius:20px;
+  font-size:.8rem;font-weight:600;z-index:400;box-shadow:0 4px 16px rgba(0,0,0,.4);white-space:nowrap;}
+
+/* ── 페이지 컨테이너 ── */
+.pages{
+  padding-top:calc(54px + env(safe-area-inset-top));
+  padding-bottom:48px;
+  display:flex;flex-direction:column;align-items:center;gap:24px;
+  padding-left:12px;padding-right:12px;
+}
+
+/* ── A4 페이지 ── */
+.page{
+  width:210mm;height:297mm;background:white;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  padding:7mm 12mm 5mm;
+  position:relative;display:flex;flex-direction:column;gap:3px;
+  overflow:hidden;touch-action:auto;
+}
+.page.draw-active{touch-action:none;}
+
+/* ── 손글씨 캔버스 ── */
+.dc{position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:20;touch-action:none;pointer-events:none;}
+.dc.active{pointer-events:all;cursor:crosshair;}
+
+/* ── 헤더 ── */
+.ph{display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:5px;border-bottom:2.5px solid var(--ink);flex-shrink:0;}
+.hl2{display:flex;align-items:center;gap:7px;}
+.badge{width:30px;height:30px;background:var(--ink);border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font:900 11px/1 'Noto Serif KR';letter-spacing:1px;flex-shrink:0;}
+.ptitle{font:900 1.05rem/1 'Noto Serif KR';color:var(--ink);}
+.psub{font:600 .72rem/1 'Noto Sans KR';color:var(--red);margin-left:6px;}
+.hr2{display:flex;gap:8px;align-items:center;}
+.mf{display:flex;align-items:center;gap:3px;font-size:.68rem;color:var(--gray);font-weight:600;}
+.mf input{border:none;border-bottom:1.5px solid var(--border);
+  font-family:inherit;font-size:.75rem;color:var(--ink);
+  padding:1px 4px;outline:none;background:transparent;width:72px;}
+.mf input.wide{width:96px;}
+
+/* ── 단원바 ── */
+.ub{display:flex;align-items:stretch;border:2px solid var(--ink);border-radius:5px;overflow:hidden;flex-shrink:0;}
+.ul{background:var(--ink);color:white;font:700 .68rem/1 'Noto Sans KR';
+  padding:5px 11px;white-space:nowrap;letter-spacing:.1em;display:flex;align-items:center;}
+.ui{flex:1;border:none;outline:none;font:700 .88rem/1 'Noto Sans KR';color:var(--ink);padding:5px 10px;background:white;}
+
+/* ── 오답유형 ── */
+.etw{flex-shrink:0;border:2px solid var(--red);border-radius:5px;overflow:hidden;}
+.etb{background:var(--red);color:white;font:700 .68rem/1 'Noto Sans KR';
+  padding:4px 10px;display:flex;align-items:center;gap:5px;}
+.etb .tag{background:white;color:var(--red);font:800 .6rem/1 'Noto Sans KR';padding:1px 4px;border-radius:2px;}
+.ets{display:flex;flex-wrap:wrap;gap:0;padding:5px 10px;background:var(--red-light);}
+.eti{display:flex;align-items:center;gap:5px;padding:3px 12px 3px 0;cursor:pointer;user-select:none;}
+.eti input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:15px;height:15px;flex-shrink:0;
+  border:2px solid var(--red-mid);border-radius:3px;
+  background:white;cursor:pointer;position:relative;transition:all .12s;
+}
+.eti input[type=checkbox]:checked{background:var(--red);border-color:var(--red);}
+.eti input[type=checkbox]:checked::after{content:'✓';position:absolute;top:-1px;left:1px;font-size:10px;color:white;font-weight:900;}
+.eti label{font:600 .75rem/1 'Noto Sans KR';color:#7f1d1d;cursor:pointer;white-space:nowrap;}
+.eti input:checked + label{color:var(--red);font-weight:700;}
+
+/* ── 섹션바 ── */
+.sb{background:var(--ink);color:white;font:700 .68rem/1 'Noto Sans KR';
+  padding:4px 10px;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.sb .tag{background:white;color:var(--ink);font:800 .6rem/1 'Noto Sans KR';padding:1px 4px;border-radius:2px;}
+.sb.red{background:var(--red);}
+.sb.red .tag{color:var(--red);}
+
+/* ── 줄선 ── */
+.lined{outline:none;font-size:.85rem;line-height:var(--lh);padding:3px 10px;
+  background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent calc(var(--lh) - 1px),#d5d5d5 calc(var(--lh) - 1px),#d5d5d5 var(--lh));
+  width:100%;}
+
+/* ── 섹션 크기 ── */
+.ww{border:2px solid var(--ink);border-radius:5px;overflow:hidden;flex:1.9 1 0;display:flex;flex-direction:column;min-height:0;}
+.aw{border:2px solid var(--ink);border-radius:5px;overflow:hidden;flex:3.1 1 0;display:flex;flex-direction:column;min-height:0;}
+.br{display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:1.5 1 0;min-height:0;}
+.anw,.kw{border:2px solid var(--ink);border-radius:5px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.wa,.aa,.ana,.ka{flex:1;min-height:0;}
+
+/* ── 문제이미지 드롭존 ── */
+.dz{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:background .15s;}
+.dz.over{background:rgba(220,38,38,.05);outline:2.5px dashed var(--red);outline-offset:-3px;}
+.pi{display:flex;flex-wrap:wrap;gap:4px;padding:4px 8px 0;flex-shrink:0;}
+.pit{position:relative;display:inline-flex;border:1.5px solid var(--border);border-radius:4px;overflow:hidden;}
+.pit img{max-width:100%;max-height:100px;object-fit:contain;display:block;}
+.pid{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
+  background:rgba(0,0,0,.65);color:white;border:none;cursor:pointer;font-size:10px;
+  display:flex;align-items:center;justify-content:center;}
+.hint{display:none;position:absolute;bottom:5px;left:0;right:0;
+  text-align:center;font-size:.68rem;color:#94a3b8;pointer-events:none;}
+.dz:not(:has(.pit)) .hint{display:block;}
+.iub{cursor:pointer;background:rgba(255,255,255,.18);color:white;
+  font-size:.63rem;font-weight:700;padding:2px 6px;border-radius:3px;
+  display:flex;align-items:center;gap:2px;white-space:nowrap;}
+.iub:hover{background:rgba(255,255,255,.3);}
+.icb{background:rgba(220,38,38,.5);color:white;border:none;border-radius:3px;
+  cursor:pointer;font-size:.63rem;padding:2px 5px;}
+
+/* ── 푸터 ── */
+.pf{
+  flex-shrink:0;
+  padding-top:4px;
+  border-top:1.5px solid var(--ink);
+  display:flex;align-items:center;
+}
+.fb{font:700 .72rem/1 'Noto Serif KR';color:var(--ink);}
+.fb .tel{font:400 .68rem/1 'Noto Sans KR';color:var(--gray);margin-left:8px;}
+.pn{position:absolute;bottom:6mm;right:12mm;font-size:.62rem;color:#bbb;font-family:'Noto Serif KR';}
+
+/* ── 인쇄 ── */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .controls,.mbadge,#toast,#guide-panel{display:none!important;}
+  body{background:white;}
+  .pages{padding:0;gap:0;}
+
+  .page{
+    box-shadow:none;
+    width:210mm; height:297mm;
+    page-break-after:always;
+    page-break-inside:avoid;
+    padding:6mm 10mm 0mm;      /* 하단 패딩 0 — 푸터가 직접 담당 */
+    gap:0;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    --lh:23px;
+  }
+  .page:last-child{page-break-after:avoid;}
+
+  /* 헤더 */
+  .ph{padding-bottom:2px;flex-shrink:0;}
+  .badge{width:22px;height:22px;font-size:8px;background:#000!important;}
+  .ptitle{font-size:.83rem;}
+  .psub{font-size:.58rem;}
+  .mf{font-size:.6rem;}
+  .mf input{font-size:.63rem;padding:0 3px;}
+
+  /* 단원바 */
+  .ul{background:#000!important;padding:2px 7px!important;font-size:.6rem;}
+  .ui{padding:2px 7px;font-size:.76rem;}
+
+  /* 오답유형 — 한 줄 강제 */
+  .etb{background:#333!important;padding:2px 7px!important;font-size:.6rem;}
+  .ets{background:#f5f5f5!important;padding:2px 7px!important;
+       flex-wrap:nowrap!important;overflow:hidden!important;}
+  .eti{padding:0 5px 0 0;white-space:nowrap;}
+  .eti label{font-size:.6rem;}
+  .eti input[type=checkbox]{width:10px;height:10px;}
+  .eti input[type=checkbox]:checked{background:#333!important;border-color:#333!important;}
+
+  /* 섹션바 */
+  .sb{background:#000!important;color:#fff!important;
+      padding:2px 7px!important;font-size:.6rem;flex-shrink:0;}
+  .sb.red{background:#444!important;}
+
+  /* 줄선 */
+  .lined{
+    background-image:repeating-linear-gradient(
+      to bottom,transparent 0px,transparent calc(var(--lh) - 1px),
+      #bbb calc(var(--lh) - 1px),#bbb var(--lh)
+    )!important;
+    padding:1px 6px!important;
+    line-height:var(--lh)!important;
+    font-size:.76rem!important;
+  }
+
+  /* ★ 섹션 높이를 297mm에 꽉 차도록 명시 지정 ★
+     297mm - 상단패딩6 - 고정요소(헤더+단원+오답유형+섹션바4+푸터)≈49mm = 248mm 배분 */
+  .ww{flex:none!important;height:71mm!important;min-height:0!important;overflow:hidden!important;}
+  .aw{flex:none!important;height:121mm!important;min-height:0!important;overflow:hidden!important;}
+  .br{flex:none!important;height:55mm!important;min-height:0!important;overflow:hidden!important;gap:2px;}
+  .anw,.kw{height:100%!important;min-height:0!important;}
+
+  /* 푸터 — flex 흐름 마지막, shrink 금지 */
+  .pf{
+    flex-shrink:0!important;
+    padding:3px 0 4px!important;
+    border-top:1px solid #000!important;
+  }
+  .fb{font-size:.6rem!important;}
+  .pn{bottom:3mm!important;right:10mm!important;}
+
+  .dc{display:block!important;}
+  [contenteditable]{outline:none!important;}
+  .hint,.iub,.icb,.pid{display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="cg">
+    <span class="cl">매수</span>
+    <input type="number" id="pageCount" value="1" min="1" max="20">
+    <button class="cb add"   onclick="addPages(false)">＋ 생성</button>
+    <button class="cb reset" onclick="resetPages()">↺ 초기화</button>
+  </div>
+  <div class="cs"></div>
+  <div class="cg">
+    <button class="cb pen"   id="btn-pen"   onclick="setTool('pen')">🖊 펜</button>
+    <button class="cb hl"    id="btn-hl"    onclick="setTool('hl')">🖍 형광</button>
+    <button class="cb erase" id="btn-erase" onclick="setTool('erase')">◻ 지우개</button>
+    <button class="cb clr"   onclick="clearCanvas()">✕</button>
+  </div>
+  <div class="cs"></div>
+  <div class="palette">
+    <div class="sw on" style="background:#1a40c8" data-color="#1a40c8" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#dc2626" data-color="#dc2626" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#000000" data-color="#000000" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#16a34a" data-color="#16a34a" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#7c3aed" data-color="#7c3aed" onclick="setColor(this)"></div>
+  </div>
+  <div class="cs"></div>
+  <div class="thk">
+    <div class="tb on" data-size="1.5" onclick="setSz(this)"><div class="td" style="width:3px;height:3px"></div></div>
+    <div class="tb"    data-size="3"   onclick="setSz(this)"><div class="td" style="width:6px;height:6px"></div></div>
+    <div class="tb"    data-size="5"   onclick="setSz(this)"><div class="td" style="width:10px;height:10px"></div></div>
+  </div>
+  <div class="cs"></div>
+  <div class="cg">
+    <button class="cb simg" onclick="saveImage()">🖼 이미지저장</button>
+    <button class="cb spdf" onclick="savePDF()">📄 PDF저장</button>
+    <button class="cb print" onclick="window.print()">🖨 인쇄</button>
+    <button class="cb" style="background:#c9a84c;color:#111;font-weight:800;" onclick="location.href='index.html'">🏠 메인</button>
+  </div>
+</div>
+
+<div class="mbadge" id="mbadge"></div>
+<div id="toast"></div>
+
+<div class="pages" id="pages">
+
+  <!-- 사용 매뉴얼 아코디언 -->
+  <div id="guide-panel" style="width:210mm;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:'Noto Sans KR',sans-serif;flex-shrink:0;">
+    <button onclick="toggleGuide()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:#1e293b;color:white;border:none;cursor:pointer;padding:12px 18px;font:700 .88rem/1 'Noto Sans KR';gap:8px;">
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#dc2626;color:white;font-weight:900;font-size:.7rem;padding:2px 8px;border-radius:4px;">시대학원</span>
+        📕 수학 오답노트 사용법 &amp; 효과적인 오답 학습 가이드
+      </span>
+      <span id="g-arrow" style="font-size:1rem;transition:transform .3s;transform:rotate(-90deg);">▼</span>
+    </button>
+    <div id="g-body" style="background:#f8fafc;overflow:hidden;transition:max-height .4s ease;max-height:0px;">
+      <div style="padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.78rem;line-height:1.75;color:#1e293b;">
+
+        <div style="grid-column:1/-1;background:#1e293b;color:white;border-radius:8px;padding:13px 16px;">
+          <div style="font:800 .88rem/1 'Noto Serif KR';color:#fca5a5;margin-bottom:10px;">📋 오답노트 구성</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;text-align:center;font-size:.72rem;">
+            <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">☑️</div><div style="font-weight:700;color:#fca5a5;margin-bottom:2px;">오답유형</div><div style="color:#94a3b8;font-size:.66rem;">틀린 이유<br>체크박스</div></div>
+            <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">❓</div><div style="font-weight:700;color:#f87171;margin-bottom:2px;">틀린 문제</div><div style="color:#94a3b8;font-size:.66rem;">문제 기록<br>이미지 첨부</div></div>
+            <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">✏️</div><div style="font-weight:700;color:#60a5fa;margin-bottom:2px;">오답 풀이</div><div style="color:#94a3b8;font-size:.66rem;">올바른 풀이<br>단계별 작성</div></div>
+            <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">🔍</div><div style="font-weight:700;color:#fb923c;margin-bottom:2px;">원인 분석</div><div style="color:#94a3b8;font-size:.66rem;">왜 틀렸는지<br>구체적 기록</div></div>
+            <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">📌</div><div style="font-weight:700;color:#34d399;margin-bottom:2px;">핵심 개념</div><div style="color:#94a3b8;font-size:.66rem;">연결 개념<br>공식 정리</div></div>
+          </div>
+        </div>
+
+        <div style="background:white;border:1.5px solid #fee2e2;border-radius:8px;padding:13px 15px;">
+          <div style="font:700 .8rem/1 'Noto Sans KR';color:#dc2626;border-bottom:2px solid #fee2e2;padding-bottom:6px;margin-bottom:9px;">☑️ 오답 유형별 대처법</div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:.73rem;">
+            <div><b style="color:#dc2626;">📚 개념오류</b> — 해당 단원 개념 처음부터 재정리. 정의를 소리 내어 설명해보기.</div>
+            <div><b style="color:#dc2626;">🔢 계산실수</b> — 풀이 중 검산 습관화. 중간 계산값을 반드시 적기.</div>
+            <div><b style="color:#dc2626;">⚠️ 조건누락</b> — 문제 조건에 밑줄 긋기. "n≥1", "a≠0" 메모.</div>
+            <div><b style="color:#dc2626;">📖 문제해석오류</b> — 문제를 천천히 2번 읽기. 구하는 것에 동그라미.</div>
+            <div><b style="color:#dc2626;">🧭 풀이전략오류</b> — 유사 유형 반복 훈련. 풀이 흐름도 작성.</div>
+            <div><b style="color:#dc2626;">⏱ 시간부족</b> — 쉬운 문제부터 풀기. 단계 간략화 연습.</div>
+          </div>
+        </div>
+
+        <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:13px 15px;">
+          <div style="font:700 .8rem/1 'Noto Sans KR';color:#059669;border-bottom:2px solid #d1fae5;padding-bottom:6px;margin-bottom:9px;">🧠 효과적인 오답 정리 4단계</div>
+          <div style="display:flex;flex-direction:column;gap:7px;font-size:.73rem;">
+            <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#dc2626;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">1</span><div><b>틀린 즉시 기록</b> — 채점 후 바로 작성. 기억 선명할 때 원인 파악이 정확.</div></div>
+            <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#dc2626;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">2</span><div><b>풀이는 처음부터 완전히</b> — 답만 고치지 말고 전체 풀이를 새로 작성.</div></div>
+            <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#dc2626;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">3</span><div><b>원인을 구체적으로</b> — "몰랐다"가 아닌 "√변환 후 근사식 적용을 몰랐다"처럼.</div></div>
+            <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#dc2626;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">4</span><div><b>1주일 후 재시험</b> — 노트 덮고 같은 문제 다시 풀기. ✅/❌ 표시.</div></div>
+          </div>
+        </div>
+
+        <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:13px 15px;">
+          <div style="font:700 .8rem/1 'Noto Sans KR';color:#0e7490;border-bottom:2px solid #cffafe;padding-bottom:6px;margin-bottom:9px;">⌨️ 입력 &amp; 저장 방법</div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:.73rem;">
+            <div><b style="color:#0e7490;">📝 텍스트</b> — 각 칸 클릭 후 바로 입력. 수식 기호(√∞≤)는 복붙.</div>
+            <div><b style="color:#0e7490;">🖼 문제 이미지</b> — 📁버튼, 드래그앤드롭, Ctrl+V 붙여넣기.</div>
+            <div><b style="color:#0e7490;">🖊 손글씨</b> — 상단 펜/형광/지우개 버튼으로 직접 필기.</div>
+            <div><b style="color:#0e7490;">🖼 이미지저장</b> — 페이지별 PNG 고해상도. 카톡 공유 가능.</div>
+            <div><b style="color:#0e7490;">📄 PDF저장</b> — 전 페이지 A4 PDF 한 파일.</div>
+            <div><b style="color:#0e7490;">🖨 인쇄</b> — 여백 "없음" 설정 시 한 장에 딱 맞게 출력.</div>
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1;background:linear-gradient(135deg,#450a0a,#1e293b);color:white;border-radius:8px;padding:13px 16px;">
+          <div style="font:700 .8rem/1 'Noto Sans KR';color:#fca5a5;margin-bottom:9px;">🔄 오답 복습 사이클</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;text-align:center;font-size:.7rem;">
+            <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">📝</div><div style="font-weight:700;color:#fca5a5;">STEP 1<br>오답 기록</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">틀린 즉시<br>노트 작성</div></div>
+            <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">🔍</div><div style="font-weight:700;color:#fb923c;">STEP 2<br>원인 분석</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">구체적 파악<br>개념 보완</div></div>
+            <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">✏️</div><div style="font-weight:700;color:#60a5fa;">STEP 3<br>1주일 후 재시험</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">노트 덮고<br>다시 풀기</div></div>
+            <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">🏆</div><div style="font-weight:700;color:#34d399;">STEP 4<br>시험 전 총정리</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">❌ 문제만<br>집중 반복</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!-- 페이지들이 JS로 여기에 추가됨 -->
+</div>
+
+<script>
+let totalPages=0, tool=null, penColor='#1a40c8', penSize=1.5;
+let isDrawing=false, lastX=0, lastY=0, activeCanvas=null;
+
+const ET=[
+  {id:'et-concept', label:'개념오류',     emoji:'📚'},
+  {id:'et-calc',    label:'계산실수',     emoji:'🔢'},
+  {id:'et-cond',    label:'조건누락',     emoji:'⚠️'},
+  {id:'et-read',    label:'문제해석오류', emoji:'📖'},
+  {id:'et-strategy',label:'풀이전략오류', emoji:'🧭'},
+  {id:'et-time',    label:'시간부족',     emoji:'⏱'},
+];
+
+const DEMO={
+  name:'김시대', date:'2026-03-05', book:'수학의 정석',
+  unit:'수열의 극한 / 수능 유형 23번',
+  checked:['et-concept','et-cond'],
+  wrong:'실수 a, b에 대하여<br><br>lim(n→∞) (√(n²+an) + bn − 4) = 5<br><br>가 성립할 때,  a + b 의 값을 구하시오.',
+  answer:'[올바른 풀이]<br><br>① √(n²+an) = n√(1+a/n) ≈ n + a/2  (n→∞)<br><br>② √(n²+an) + bn ≈ (1+b)n + a/2<br><br>③ 극한이 유한값 → n의 계수 = 0<br>&nbsp;&nbsp;&nbsp;1 + b = 0  ∴ b = −1<br><br>④ 상수항:  a/2 − 4 = 5  ∴ a = 18<br><br>∴  a + b = 18 + (−1) = <b>17</b>',
+  analysis:'• √(n²+an) 을 그대로 극한 계산하려 함<br>• n→∞ 근사 변환(테일러 전개)을 몰랐음<br>• "극한 수렴 → 최고차항 계수=0" 조건 미적용',
+  key:'◆ 핵심 공식<br>&nbsp;&nbsp;√(n²+an) ≈ n + a/2<br><br>◆ 수렴 조건<br>&nbsp;&nbsp;발산항(최고차항) 계수 = 0<br><br>◆ 활용<br>&nbsp;&nbsp;lim(an+b)=수렴 → a=0'
+};
+
+function createPage(num, demo){
+  const d = demo ? DEMO : {};
+  const etHTML = ET.map(e=>`
+    <div class="eti">
+      <input type="checkbox" id="${e.id}-${num}" ${(d.checked||[]).includes(e.id)?'checked':''}>
+      <label for="${e.id}-${num}">${e.emoji} ${e.label}</label>
+    </div>`).join('');
+
+  return `
+  <div class="page" id="page-${num}">
+    <canvas class="dc" id="cv-${num}"></canvas>
+    <div class="ph">
+      <div class="hl2">
+        <div class="badge">시대</div>
+        <div class="ptitle">수학 오답노트</div>
+        <div class="psub">WRONG ANSWER NOTE</div>
+      </div>
+      <div class="hr2">
+        <div class="mf">이름 <input value="${d.name||''}" placeholder=""></div>
+        <div class="mf">날짜 <input value="${d.date||''}" placeholder=""></div>
+        <div class="mf">교재 <input class="wide" value="${d.book||''}" placeholder=""></div>
+      </div>
+    </div>
+    <div class="ub">
+      <span class="ul">단 원</span>
+      <input class="ui" value="${d.unit||''}" placeholder="단원명 / 문항번호를 입력하세요">
+    </div>
+    <div class="etw">
+      <div class="etb"><span class="tag">오답유형</span> 틀린 이유를 체크하세요</div>
+      <div class="ets">${etHTML}</div>
+    </div>
+    <div class="ww">
+      <div class="sb red">
+        <span class="tag">문제</span> 틀린 문제
+        <span style="margin-left:auto;display:flex;gap:4px;">
+          <label class="iub">📁 이미지<input type="file" accept="image/*" style="display:none" onchange="insertImg(this,${num})"></label>
+          <button class="icb" onclick="clearImgs(${num})">🗑</button>
+        </span>
+      </div>
+      <div class="dz" id="dz-${num}" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event,${num})">
+        <div class="pi" id="pi-${num}"></div>
+        <div class="lined wa" contenteditable="true">${d.wrong||''}</div>
+        <div class="hint">🖼 이미지를 드래그하거나 📁 버튼으로 추가</div>
+      </div>
+    </div>
+    <div class="aw">
+      <div class="sb"><span class="tag">풀이</span> 오답 풀이 · 올바른 풀이</div>
+      <div class="lined aa" contenteditable="true">${d.answer||''}</div>
+    </div>
+    <div class="br">
+      <div class="anw">
+        <div class="sb red"><span class="tag">분석</span> 틀린 원인 분석</div>
+        <div class="lined ana" contenteditable="true">${d.analysis||''}</div>
+      </div>
+      <div class="kw">
+        <div class="sb"><span class="tag">개념</span> 관련 핵심 개념</div>
+        <div class="lined ka" contenteditable="true">${d.key||''}</div>
+      </div>
+    </div>
+    <div class="pf">
+      <div class="fb">중고등부 수학전문 시대학원<span class="tel">☎ 031-978-1117</span></div>
+    </div>
+    <div class="pn">${num}</div>
+  </div>`;
+}
+
+function addPages(demo){
+  const n=parseInt(document.getElementById('pageCount').value)||1;
+  const ct=document.getElementById('pages');
+  for(let i=0;i<n;i++){
+    totalPages++;
+    ct.insertAdjacentHTML('beforeend', createPage(totalPages, demo&&i===0));
+    initCanvas(totalPages);
+  }
+}
+function resetPages(){
+  if(!confirm('모든 페이지를 초기화하시겠습니까?')) return;
+  totalPages=0;
+  const ct=document.getElementById('pages');
+  // 가이드 패널 빼고 나머지 제거
+  [...ct.children].forEach(c=>{ if(c.id!=='guide-panel') c.remove(); });
+  addPages(false);
+}
+
+/* ── 캔버스 ── */
+function initCanvas(num){
+  const page=document.getElementById('page-'+num);
+  const cv=document.getElementById('cv-'+num);
+  if(!page||!cv) return;
+  function sz(){
+    const r=page.getBoundingClientRect();
+    const w=Math.round(r.width),h=Math.round(r.height);
+    if(cv.width===w&&cv.height===h) return;
+    const t=document.createElement('canvas');
+    t.width=cv.width;t.height=cv.height;
+    if(cv.width>0&&cv.height>0) t.getContext('2d').drawImage(cv,0,0);
+    cv.width=w;cv.height=h;
+    if(t.width>0&&t.height>0) cv.getContext('2d').drawImage(t,0,0,w,h);
+  }
+  sz();
+  window.addEventListener('resize',()=>setTimeout(sz,150));
+
+  function pos(cx,cy){const r=cv.getBoundingClientRect();return{x:cx-r.left,y:cy-r.top};}
+  function applyCtx(ctx){
+    ctx.lineCap='round';ctx.lineJoin='round';
+    if(tool==='erase'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=30;ctx.globalAlpha=1;}
+    else if(tool==='hl'){ctx.globalCompositeOperation='source-over';ctx.strokeStyle=penColor;ctx.lineWidth=18;ctx.globalAlpha=0.35;}
+    else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=penColor;ctx.lineWidth=penSize;ctx.globalAlpha=1;}
+  }
+  function startAt(x,y){
+    if(!tool) return;
+    isDrawing=true;activeCanvas=cv;lastX=x;lastY=y;
+    const ctx=cv.getContext('2d');applyCtx(ctx);
+    ctx.beginPath();ctx.arc(x,y,ctx.lineWidth/2,0,Math.PI*2);
+    if(tool!=='hl'){ctx.fillStyle=tool==='erase'?'rgba(0,0,0,1)':penColor;if(tool==='erase')ctx.globalCompositeOperation='destination-out';ctx.fill();}
+    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  }
+  function moveTo(x,y){
+    if(!isDrawing||activeCanvas!==cv) return;
+    const ctx=cv.getContext('2d');applyCtx(ctx);
+    ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();
+    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+    lastX=x;lastY=y;
+  }
+  cv.addEventListener('mousedown',e=>{e.preventDefault();const p=pos(e.clientX,e.clientY);startAt(p.x,p.y);});
+  cv.addEventListener('mousemove',e=>{if(!isDrawing)return;e.preventDefault();const p=pos(e.clientX,e.clientY);moveTo(p.x,p.y);});
+  cv.addEventListener('mouseup',()=>stopDraw());
+  cv.addEventListener('mouseleave',()=>stopDraw());
+  cv.addEventListener('touchstart',e=>{if(!tool)return;e.preventDefault();e.stopPropagation();const t=e.changedTouches[0];const p=pos(t.clientX,t.clientY);startAt(p.x,p.y);},{passive:false});
+  cv.addEventListener('touchmove',e=>{if(!isDrawing||activeCanvas!==cv)return;e.preventDefault();e.stopPropagation();const t=e.changedTouches[0];const p=pos(t.clientX,t.clientY);moveTo(p.x,p.y);},{passive:false});
+  cv.addEventListener('touchend',e=>{e.preventDefault();stopDraw();},{passive:false});
+  cv.addEventListener('touchcancel',e=>{e.preventDefault();stopDraw();},{passive:false});
+}
+function stopDraw(){isDrawing=false;activeCanvas=null;}
+
+/* ── 도구 ── */
+function setTool(t){
+  tool=(tool===t)?null:t;
+  const on=tool!==null;
+  ['pen','hl','erase'].forEach(x=>{const b=document.getElementById('btn-'+x);if(b)b.classList.toggle('on',tool===x);});
+  document.querySelectorAll('.dc').forEach(c=>{c.classList.toggle('active',on);c.style.pointerEvents=on?'all':'none';c.style.zIndex=on?'20':'-1';});
+  document.querySelectorAll('[contenteditable]').forEach(el=>el.contentEditable=on?'false':'true');
+  document.querySelectorAll('input:not([type=number]):not([type=checkbox]):not([type=file]),textarea').forEach(el=>el.disabled=on);
+  const b=document.getElementById('mbadge');if(!b)return;
+  if(!on){b.className='mbadge';return;}
+  const lbl={pen:'✏️ 펜 모드',hl:'🖍 형광펜 모드',erase:'◻ 지우개 모드'};
+  const cls={pen:'pen-mode',hl:'hl-mode',erase:'erase-mode'};
+  b.textContent=lbl[tool];b.className=`mbadge show ${cls[tool]}`;
+}
+function setColor(el){penColor=el.dataset.color;document.querySelectorAll('.sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');}
+function setSz(el){penSize=parseFloat(el.dataset.size);document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+function clearCanvas(){if(!confirm('모든 손글씨를 지우시겠습니까?'))return;document.querySelectorAll('.dc').forEach(c=>c.getContext('2d').clearRect(0,0,c.width,c.height));}
+
+/* ── 이미지 ── */
+function addImg(num,src){
+  const c=document.getElementById('pi-'+num);if(!c)return;
+  const item=document.createElement('div');item.className='pit';
+  const img=document.createElement('img');img.src=src;img.style.maxHeight='90px';
+  const del=document.createElement('button');del.className='pid';del.textContent='✕';del.onclick=()=>item.remove();
+  item.appendChild(img);item.appendChild(del);c.appendChild(item);
+}
+function insertImg(input,num){
+  Array.from(input.files).forEach(f=>{if(!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=e=>addImg(num,e.target.result);r.readAsDataURL(f);});
+  input.value='';
+}
+function clearImgs(num){const c=document.getElementById('pi-'+num);if(c&&c.children.length>0){if(confirm('이미지 삭제?'))c.innerHTML='';}}
+function dzOver(e){e.preventDefault();e.stopPropagation();e.currentTarget.classList.add('over');}
+function dzLeave(e){e.currentTarget.classList.remove('over');}
+function dzDrop(e,num){
+  e.preventDefault();e.stopPropagation();e.currentTarget.classList.remove('over');
+  Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')).forEach(f=>{const r=new FileReader();r.onload=ev=>addImg(num,ev.target.result);r.readAsDataURL(f);});
+}
+document.addEventListener('paste',e=>{
+  const it=Array.from(e.clipboardData?.items||[]).find(i=>i.type.startsWith('image/'));if(!it)return;
+  const zone=document.activeElement?.closest('.dz');if(!zone)return;
+  e.preventDefault();
+  const num=zone.closest('.page')?.id?.replace('page-','');if(!num)return;
+  const r=new FileReader();r.onload=ev=>addImg(num,ev.target.result);r.readAsDataURL(it.getAsFile());
+});
+
+/* ── 저장 ── */
+function toast(msg,dur=2500){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',dur);}
+
+async function renderPage(pageEl,scale=2){
+  if(!window.html2canvas){
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  }
+  return html2canvas(pageEl,{scale,useCORS:true,allowTaint:true,backgroundColor:'#fff',logging:false,
+    ignoreElements:el=>['controls','mbadge','toast','guide-panel'].some(c=>el.id===c||el.classList?.contains(c))});
+}
+async function saveImage(){
+  const pages=document.querySelectorAll('.page');if(!pages.length)return;
+  toast('🖼 이미지 생성 중...',10000);
+  try{
+    for(let i=0;i<pages.length;i++){
+      const c=await renderPage(pages[i],2);
+      const a=document.createElement('a');a.download=`시대학원_오답노트_${i+1}p.png`;a.href=c.toDataURL('image/png');a.click();
+      await new Promise(r=>setTimeout(r,400));
+    }
+    toast(`✅ ${pages.length}장 저장 완료!`);
+  }catch(e){toast('❌ 실패: '+e.message);}
+}
+async function savePDF(){
+  const pages=document.querySelectorAll('.page');if(!pages.length)return;
+  toast('📄 PDF 생성 중...',15000);
+  if(!window.jspdf){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+  try{
+    const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    for(let i=0;i<pages.length;i++){if(i>0)pdf.addPage();const c=await renderPage(pages[i],2);pdf.addImage(c.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297);}
+    pdf.save('시대학원_오답노트.pdf');toast('✅ PDF 저장 완료!');
+  }catch(e){toast('❌ PDF 실패: '+e.message);}
+}
+
+/* ── 매뉴얼 토글 ── */
+function toggleGuide(){
+  const body=document.getElementById('g-body');
+  const arrow=document.getElementById('g-arrow');
+  const open=body.style.maxHeight!=='0px';
+  body.style.maxHeight=open?'0px':'2000px';
+  arrow.style.transform=open?'rotate(-90deg)':'rotate(0deg)';
+}
+
+/* ── 초기 실행 ── */
+addPages(true);
+</script>
+</body>
+</html>

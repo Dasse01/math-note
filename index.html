@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="시대수학노트">
+<meta name="theme-color" content="#0a0a14">
+
+<!-- ══ OG / 카카오톡 공유 미리보기 ══ -->
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="시대학원">
+<meta property="og:title"       content="시대학원 — 중고등 수학전문">
+<meta property="og:description" content="개념노트 · 풀이노트 · 오답노트로 완성하는 시대학원만의 수학 학습 시스템. 지금 바로 시작하세요.">
+<meta property="og:image"       content="https://via.placeholder.com/1200x630/0a0a14/c9a84c?text=시대학원+수학노트">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height"content="630">
+<meta property="og:url"         content="">
+
+<!-- 트위터 카드 (카카오톡에도 적용) -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="시대학원 — 중고등 수학전문">
+<meta name="twitter:description" content="개념·풀이·오답노트로 완성하는 수학 학습 시스템">
+<meta name="twitter:image"       content="https://via.placeholder.com/1200x630/0a0a14/c9a84c?text=시대학원+수학노트">
+
+<title>시대학원 — 중고등 수학전문</title>
+
+<!-- OG 이미지를 Canvas로 동적 생성 후 실제 og:image에 주입 -->
+<script>
+// GitHub Pages 배포 시 현재 URL을 og:url에 자동 설정
+document.addEventListener('DOMContentLoaded', function(){
+  const url = window.location.href.split('?')[0];
+  document.querySelector('meta[property="og:url"]').content = url;
+
+  // Canvas로 OG 이미지 생성 (1200×630)
+  generateOGImage();
+});
+
+function generateOGImage(){
+  try {
+    const cv = document.createElement('canvas');
+    cv.width = 1200; cv.height = 630;
+    const ctx = cv.getContext('2d');
+
+    // 배경
+    const bg = ctx.createLinearGradient(0,0,1200,630);
+    bg.addColorStop(0,'#0a0a14');
+    bg.addColorStop(.5,'#111128');
+    bg.addColorStop(1,'#0a0a14');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,1200,630);
+
+    // 금색 테두리 라인
+    ctx.strokeStyle='rgba(201,168,76,0.5)'; ctx.lineWidth=3;
+    ctx.strokeRect(30,30,1140,570);
+    ctx.strokeStyle='rgba(201,168,76,0.15)'; ctx.lineWidth=1;
+    ctx.strokeRect(44,44,1112,542);
+
+    // 좌측 골드 세로 강조선
+    ctx.fillStyle='#c9a84c';
+    ctx.fillRect(30,30,4,570);
+
+    // 우측 골드 세로 강조선
+    ctx.fillRect(1166,30,4,570);
+
+    // 상단 배지 박스
+    ctx.fillStyle='rgba(201,168,76,0.15)';
+    roundRect(ctx, 80, 80, 340, 44, 22);
+    ctx.fill();
+    ctx.strokeStyle='rgba(201,168,76,0.5)'; ctx.lineWidth=1.5;
+    roundRect(ctx, 80, 80, 340, 44, 22);
+    ctx.stroke();
+
+    // 배지 텍스트
+    ctx.fillStyle='#e8c97a';
+    ctx.font='bold 16px sans-serif';
+    ctx.fillText('● 중고등 수학전문 • 2024 개원', 102, 107);
+
+    // 메인 타이틀
+    ctx.fillStyle='#f0ede8';
+    ctx.font='900 80px serif';
+    ctx.fillText('시대학원', 80, 230);
+
+    // 골드 언더라인
+    const grad2 = ctx.createLinearGradient(80,240,540,240);
+    grad2.addColorStop(0,'#c9a84c'); grad2.addColorStop(1,'transparent');
+    ctx.fillStyle=grad2;
+    ctx.fillRect(80,245,460,3);
+
+    // 영문 부제
+    ctx.fillStyle='rgba(138,138,160,0.9)';
+    ctx.font='italic 28px serif';
+    ctx.fillText('Sidaehagwon  Math Academy', 80, 290);
+
+    // 구분선
+    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(80,320); ctx.lineTo(1120,320); ctx.stroke();
+
+    // 3개 노트 카드
+    const cards = [
+      { icon:'📗', title:'개념노트', sub:'CONCEPT NOTE',   color:'#52b788', x:80  },
+      { icon:'📘', title:'풀이노트', sub:'SOLUTION NOTE',  color:'#4a90d9', x:460 },
+      { icon:'📕', title:'오답노트', sub:'WRONG ANS. NOTE',color:'#e05252', x:840 },
+    ];
+    cards.forEach(c=>{
+      // 카드 배경
+      ctx.fillStyle='rgba(255,255,255,0.04)';
+      roundRect(ctx, c.x, 345, 300, 200, 12);
+      ctx.fill();
+      ctx.strokeStyle=c.color+'55'; ctx.lineWidth=1.5;
+      roundRect(ctx, c.x, 345, 300, 200, 12);
+      ctx.stroke();
+
+      // 좌측 컬러 바
+      ctx.fillStyle=c.color;
+      roundRect(ctx, c.x, 345, 5, 200, [12,0,0,12]);
+      ctx.fill();
+
+      // 아이콘
+      ctx.font='46px serif';
+      ctx.fillText(c.icon, c.x+30, 410);
+
+      // 제목
+      ctx.fillStyle='#f0ede8';
+      ctx.font='bold 32px serif';
+      ctx.fillText(c.title, c.x+30, 460);
+
+      // 영문
+      ctx.fillStyle=c.color;
+      ctx.font='bold 13px sans-serif';
+      ctx.fillText(c.sub, c.x+30, 488);
+
+      // 화살표
+      ctx.fillStyle='rgba(255,255,255,0.3)';
+      ctx.font='20px sans-serif';
+      ctx.fillText('→', c.x+262, 510);
+    });
+
+    // 하단 전화번호
+    ctx.fillStyle='rgba(201,168,76,0.7)';
+    ctx.font='bold 22px sans-serif';
+    ctx.fillText('☎  031-978-1117', 80, 585);
+
+    // 우측 하단 슬로건
+    ctx.fillStyle='rgba(138,138,160,0.6)';
+    ctx.font='16px sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText('수학의 자신감, 시대학원에서 시작됩니다', 1120, 585);
+    ctx.textAlign='left';
+
+    // og:image에 주입
+    const dataURL = cv.toDataURL('image/png');
+    document.querySelector('meta[property="og:image"]').content = dataURL;
+    document.querySelector('meta[name="twitter:image"]').content = dataURL;
+  } catch(e){ console.log('OG image gen:', e); }
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  if(typeof r === 'number') r = [r,r,r,r];
+  ctx.beginPath();
+  ctx.moveTo(x+r[0],y);
+  ctx.lineTo(x+w-r[1],y); ctx.arcTo(x+w,y,x+w,y+r[1],r[1]);
+  ctx.lineTo(x+w,y+h-r[2]); ctx.arcTo(x+w,y+h,x+w-r[2],y+h,r[2]);
+  ctx.lineTo(x+r[3],y+h); ctx.arcTo(x,y+h,x,y+h-r[3],r[3]);
+  ctx.lineTo(x,y+r[0]); ctx.arcTo(x,y,x+r[0],y,r[0]);
+  ctx.closePath();
+}
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display:ital@0;1&display=swap');
+
+:root{
+  --bg:#0a0a14; --bg2:#0f0f1e; --surface:#14142a;
+  --border:rgba(255,255,255,.08);
+  --gold:#c9a84c; --gold2:#e8c97a;
+  --white:#f0ede8; --gray:#8a8aa0;
+  --red:#e05252; --blue:#4a90d9; --green:#52b788;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--bg); color:var(--white);
+  overflow-x:hidden; min-height:100vh;
+}
+
+/* 노이즈 텍스처 */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;
+}
+
+/* ══════════════
+   HERO
+══════════════ */
+.hero{
+  position:relative;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:100px 24px 80px; overflow:hidden;
+}
+
+/* 배경 글로우 */
+.glow{
+  position:absolute;top:-10%;left:50%;transform:translateX(-50%);
+  width:min(900px,140vw);height:min(900px,140vw);
+  background:radial-gradient(ellipse,rgba(201,168,76,.1) 0%,rgba(74,144,217,.05) 45%,transparent 70%);
+  pointer-events:none;z-index:0;
+  animation:glowPulse 7s ease-in-out infinite alternate;
+}
+@keyframes glowPulse{
+  from{transform:translateX(-50%) scale(1);opacity:.7;}
+  to{transform:translateX(-50%) scale(1.2);opacity:1;}
+}
+
+/* 대각 장식선 */
+.deco-lines{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.deco-lines span{
+  position:absolute;display:block;
+  height:1px;width:60%;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.2),transparent);
+}
+.deco-lines span:nth-child(1){top:18%;left:-10%;transform:rotate(-15deg);}
+.deco-lines span:nth-child(2){bottom:22%;right:-10%;transform:rotate(-15deg);background:linear-gradient(90deg,transparent,rgba(74,144,217,.15),transparent);}
+.deco-lines span:nth-child(3){top:55%;left:5%;width:20%;transform:rotate(-15deg);}
+
+/* 부유 수학 기호 */
+.math-bg{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.ms{
+  position:absolute;
+  font-family:'DM Serif Display',serif;font-style:italic;
+  color:rgba(201,168,76,.055); user-select:none;
+  animation:floatS 14s ease-in-out infinite;
+}
+.ms:nth-child(1){font-size:clamp(80px,14vw,160px);top:5%;left:2%;animation-delay:0s;}
+.ms:nth-child(2){font-size:clamp(50px,8vw,90px);top:18%;right:4%;animation-delay:-4s;}
+.ms:nth-child(3){font-size:clamp(60px,10vw,120px);bottom:20%;left:5%;animation-delay:-8s;}
+.ms:nth-child(4){font-size:clamp(40px,6vw,70px);bottom:12%;right:6%;animation-delay:-11s;}
+.ms:nth-child(5){font-size:clamp(120px,20vw,220px);top:40%;left:40%;opacity:.025;animation-delay:-5s;}
+@keyframes floatS{
+  0%,100%{transform:translateY(0) rotate(-4deg);}
+  50%{transform:translateY(-20px) rotate(4deg);}
+}
+
+/* 상단 배지 */
+.hero-badge{
+  position:relative;z-index:2;
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(201,168,76,.08);
+  border:1px solid rgba(201,168,76,.35);
+  border-radius:100px;padding:7px 20px;
+  font-size:.7rem;font-weight:700;color:var(--gold2);
+  letter-spacing:.15em;text-transform:uppercase;
+  margin-bottom:32px;
+  animation:fadeUp .8s ease both;
+}
+.hero-badge i{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--gold2);animation:blink 2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+/* 메인 제목 */
+.hero-title{
+  position:relative;z-index:2;text-align:center;
+  margin-bottom:24px;
+  animation:fadeUp .9s .1s ease both;
+}
+.hero-title .line1{
+  display:block;
+  font:900 clamp(2.8rem,9vw,5rem)/1.1 'Noto Serif KR';
+  color:var(--white);letter-spacing:-.02em;
+}
+.hero-title .accent{
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 50%,var(--gold) 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 4s linear infinite;
+}
+@keyframes shimmer{to{background-position:200% center;}}
+.hero-title .line2{
+  display:block;
+  font:400 italic clamp(.85rem,2.2vw,1.15rem)/1 'DM Serif Display';
+  color:var(--gray);letter-spacing:.18em;margin-top:14px;
+}
+
+/* 서브 카피 */
+.hero-copy{
+  position:relative;z-index:2;text-align:center;
+  font:300 clamp(.85rem,2vw,1.05rem)/1.9 'Noto Sans KR';
+  color:rgba(240,237,232,.55);
+  max-width:520px;margin-bottom:52px;
+  animation:fadeUp 1s .2s ease both;
+}
+.hero-copy strong{color:var(--gold2);font-weight:600;}
+
+/* 골드 구분선 */
+.divider{
+  position:relative;z-index:2;
+  display:flex;align-items:center;gap:12px;
+  width:min(440px,80%);margin:0 auto 52px;
+  animation:fadeUp 1s .25s ease both;
+}
+.divider::before,.divider::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);
+}
+.divider span{
+  font:700 .6rem/1 'Noto Sans KR';
+  color:var(--gold);letter-spacing:.2em;white-space:nowrap;
+}
+
+/* ══════════════
+   노트 카드 그리드
+══════════════ */
+.note-grid{
+  position:relative;z-index:2;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(280px,85vw),1fr));
+  gap:20px;width:min(980px,92vw);
+  margin:0 auto 60px;
+  animation:fadeUp 1s .35s ease both;
+}
+
+.note-card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:32px 28px 28px;
+  overflow:hidden;
+  cursor:pointer;
+  text-decoration:none;color:inherit;
+  transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease;
+}
+.note-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.note-card::before{
+  content:'';position:absolute;
+  inset:0;border-radius:16px;opacity:0;
+  transition:opacity .3s;
+}
+.note-card:hover::before{opacity:1;}
+
+/* 각 카드 컬러 테마 */
+.card-green{border-color:rgba(82,183,136,.2);}
+.card-green:hover{border-color:rgba(82,183,136,.5);}
+.card-green::before{background:radial-gradient(ellipse at top left,rgba(82,183,136,.06),transparent 70%);}
+.card-green .card-accent{color:var(--green);}
+.card-green .card-bar{background:var(--green);}
+.card-green .card-btn{background:rgba(82,183,136,.15);color:var(--green);border-color:rgba(82,183,136,.3);}
+.card-green .card-btn:hover{background:var(--green);color:white;}
+
+.card-blue{border-color:rgba(74,144,217,.2);}
+.card-blue:hover{border-color:rgba(74,144,217,.5);}
+.card-blue::before{background:radial-gradient(ellipse at top left,rgba(74,144,217,.06),transparent 70%);}
+.card-blue .card-accent{color:var(--blue);}
+.card-blue .card-bar{background:var(--blue);}
+.card-blue .card-btn{background:rgba(74,144,217,.15);color:var(--blue);border-color:rgba(74,144,217,.3);}
+.card-blue .card-btn:hover{background:var(--blue);color:white;}
+
+.card-red{border-color:rgba(224,82,82,.2);}
+.card-red:hover{border-color:rgba(224,82,82,.5);}
+.card-red::before{background:radial-gradient(ellipse at top left,rgba(224,82,82,.06),transparent 70%);}
+.card-red .card-accent{color:var(--red);}
+.card-red .card-bar{background:var(--red);}
+.card-red .card-btn{background:rgba(224,82,82,.15);color:var(--red);border-color:rgba(224,82,82,.3);}
+.card-red .card-btn:hover{background:var(--red);color:white;}
+
+/* 카드 내부 상단 바 */
+.card-bar{
+  position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:16px 16px 0 0;
+}
+
+/* 카드 아이콘 */
+.card-icon{
+  font-size:2.8rem;margin-bottom:16px;
+  display:block;
+  transition:transform .3s;
+}
+.note-card:hover .card-icon{transform:scale(1.1) rotate(-5deg);}
+
+/* 카드 번호 */
+.card-num{
+  font:700 .62rem/1 'DM Serif Display';
+  letter-spacing:.2em;color:var(--gray);
+  margin-bottom:8px;display:block;
+}
+
+/* 카드 제목 */
+.card-title{
+  font:800 1.5rem/1.1 'Noto Serif KR';
+  color:var(--white);margin-bottom:6px;
+}
+.card-title-en{
+  font:400 italic .78rem/1 'DM Serif Display';
+  letter-spacing:.1em;margin-bottom:16px;display:block;
+}
+
+/* 구분선 */
+.card-rule{
+  height:1px;background:var(--border);margin:16px 0;
+}
+
+/* 카드 설명 */
+.card-desc{
+  font:400 .8rem/1.8 'Noto Sans KR';
+  color:rgba(240,237,232,.5);margin-bottom:22px;
+}
+
+/* 태그 */
+.card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;}
+.tag{
+  font:600 .62rem/1 'Noto Sans KR';
+  padding:4px 10px;border-radius:100px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  color:var(--gray);
+}
+.note-card:hover .tag{border-color:rgba(255,255,255,.15);}
+
+/* 버튼 */
+.card-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:10px 20px;border-radius:8px;
+  border:1px solid;
+  font:700 .78rem/1 'Noto Sans KR';
+  cursor:pointer;text-decoration:none;
+  transition:all .2s;
+}
+.card-btn svg{transition:transform .2s;}
+.card-btn:hover svg{transform:translateX(4px);}
+
+/* ══════════════
+   특징 섹션
+══════════════ */
+.features{
+  position:relative;z-index:2;
+  width:min(980px,92vw);margin:0 auto 80px;
+  animation:fadeUp 1s .5s ease both;
+}
+.section-label{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:36px;
+}
+.section-label::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(201,168,76,.3),transparent);
+}
+.section-label span{
+  font:700 .65rem/1 'Noto Sans KR';
+  color:var(--gold);letter-spacing:.2em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.feat-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+@media(max-width:600px){
+  .feat-grid{grid-template-columns:1fr;}
+}
+.feat-item{
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  border-radius:12px;padding:22px 20px;
+  transition:background .2s,border-color .2s;
+}
+.feat-item:hover{background:rgba(255,255,255,.04);border-color:rgba(201,168,76,.2);}
+.feat-icon{font-size:1.6rem;margin-bottom:10px;display:block;}
+.feat-title{font:700 .88rem/1 'Noto Serif KR';color:var(--white);margin-bottom:7px;}
+.feat-desc{font:400 .72rem/1.7 'Noto Sans KR';color:var(--gray);}
+
+/* ══════════════
+   학원 정보 섹션
+══════════════ */
+.info-section{
+  position:relative;z-index:2;
+  width:min(980px,92vw);margin:0 auto 40px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;overflow:hidden;
+  animation:fadeUp 1s .6s ease both;
+}
+.info-inner{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0;
+}
+@media(max-width:600px){.info-inner{grid-template-columns:1fr;}}
+.info-left{
+  padding:36px 36px;
+  border-right:1px solid var(--border);
+}
+@media(max-width:600px){.info-left{border-right:none;border-bottom:1px solid var(--border);}}
+.info-right{padding:36px 36px;}
+.info-tag{
+  display:inline-block;
+  font:700 .6rem/1 'Noto Sans KR';
+  color:var(--gold);letter-spacing:.15em;text-transform:uppercase;
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);
+  border-radius:100px;padding:4px 12px;margin-bottom:16px;
+}
+.info-h{font:800 1.3rem/1.3 'Noto Serif KR';color:var(--white);margin-bottom:14px;}
+.info-p{font:400 .8rem/1.85 'Noto Sans KR';color:rgba(240,237,232,.5);}
+.info-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:4px;}
+.info-list li{
+  display:flex;align-items:flex-start;gap:10px;
+  font:400 .8rem/1.5 'Noto Sans KR';color:rgba(240,237,232,.6);
+}
+.info-list li::before{
+  content:'';display:inline-block;
+  width:5px;height:5px;border-radius:50%;
+  background:var(--gold);flex-shrink:0;margin-top:7px;
+}
+.contact-row{
+  display:flex;align-items:center;gap:10px;margin-top:20px;
+  padding:14px 18px;
+  background:rgba(201,168,76,.06);
+  border:1px solid rgba(201,168,76,.2);
+  border-radius:10px;
+}
+.contact-row .tel{
+  font:800 1.15rem/1 'Noto Serif KR';
+  color:var(--gold2);letter-spacing:.05em;
+}
+.contact-row .tel-sub{font:400 .68rem/1 'Noto Sans KR';color:var(--gray);}
+
+/* ══════════════
+   푸터
+══════════════ */
+.footer{
+  position:relative;z-index:2;
+  width:min(980px,92vw);margin:0 auto;
+  padding:28px 0;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+}
+.footer-brand{font:700 .9rem/1 'Noto Serif KR';color:var(--gray);}
+.footer-copy{font:400 .7rem/1 'Noto Sans KR';color:rgba(138,138,160,.5);}
+.kakao-share{
+  display:inline-flex;align-items:center;gap:7px;
+  background:#FEE500;color:#1a1a1a;
+  border:none;border-radius:8px;
+  padding:9px 18px;
+  font:700 .78rem/1 'Noto Sans KR';
+  cursor:pointer;transition:opacity .2s;
+}
+.kakao-share:hover{opacity:.85;}
+
+/* ══ 애니메이션 ══ */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes fadeDown{
+  from{opacity:0;transform:translateY(-16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ══ 반응형 ══ */
+@media(max-width:480px){
+  .hero{padding:80px 16px 60px;}
+  .note-grid{gap:14px;}
+  .note-card{padding:24px 20px 22px;}
+  .footer{flex-direction:column;align-items:flex-start;}
+}
+
+/* ══ 스크롤 등장 ══ */
+.reveal{
+  opacity:0;transform:translateY(28px);
+  transition:opacity .7s ease,transform .7s ease;
+}
+.reveal.visible{opacity:1;transform:none;}
+</style>
+</head>
+<body>
+
+<!-- 배경 요소 -->
+<div class="glow"></div>
+<div class="deco-lines"><span></span><span></span><span></span></div>
+<div class="math-bg">
+  <span class="ms">∑</span>
+  <span class="ms">∫</span>
+  <span class="ms">π</span>
+  <span class="ms">∞</span>
+  <span class="ms">√</span>
+</div>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-badge">
+    <i></i> 중고등 수학전문 · 검증된 학습 시스템
+  </div>
+
+  <h1 class="hero-title">
+    <span class="line1"><span class="accent">시대학원</span></span>
+    <span class="line2">Sidaehagwon  Math Academy</span>
+  </h1>
+
+  <p class="hero-copy">
+    <strong>개념 → 풀이 → 오답</strong>의 3단계 노트 시스템으로<br>
+    수학 실력을 체계적으로 완성합니다.
+  </p>
+
+  <div class="divider"><span>STUDY NOTE SYSTEM</span></div>
+
+  <!-- 3개 노트 카드 -->
+  <div class="note-grid">
+
+    <!-- 개념노트 -->
+    <a class="note-card card-green" href="시대학원_수학_개념노트_PWA.html">
+      <div class="card-bar"></div>
+      <span class="card-icon">📗</span>
+      <span class="card-num">NOTE  01</span>
+      <div class="card-title">개념노트</div>
+      <span class="card-title-en card-accent">Concept Note</span>
+      <div class="card-rule"></div>
+      <p class="card-desc">핵심 개념과 공식을 체계적으로 정리합니다. 문제·풀이·개념·공식 4구역 구성.</p>
+      <div class="card-tags">
+        <span class="tag">개념 정리</span>
+        <span class="tag">공식 노트</span>
+        <span class="tag">손글씨 필기</span>
+      </div>
+      <span class="card-btn">
+        노트 열기
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+    <!-- 풀이노트 -->
+    <a class="note-card card-blue" href="시대학원_수학_풀이노트.html">
+      <div class="card-bar"></div>
+      <span class="card-icon">📘</span>
+      <span class="card-num">NOTE  02</span>
+      <div class="card-title">풀이노트</div>
+      <span class="card-title-en card-accent">Solution Note</span>
+      <div class="card-rule"></div>
+      <p class="card-desc">한 페이지에 4문제, 5mm 모눈 위에 단계별 풀이를 깔끔하게 작성합니다.</p>
+      <div class="card-tags">
+        <span class="tag">4분할 구성</span>
+        <span class="tag">5mm 모눈</span>
+        <span class="tag">단계별 풀이</span>
+      </div>
+      <span class="card-btn">
+        노트 열기
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+    <!-- 오답노트 -->
+    <a class="note-card card-red" href="시대학원_수학_오답노트.html">
+      <div class="card-bar"></div>
+      <span class="card-icon">📕</span>
+      <span class="card-num">NOTE  03</span>
+      <div class="card-title">오답노트</div>
+      <span class="card-title-en card-accent">Wrong Answer Note</span>
+      <div class="card-rule"></div>
+      <p class="card-desc">오답 유형 분류부터 원인 분석·핵심 개념까지. 틀린 문제를 완전히 내 것으로.</p>
+      <div class="card-tags">
+        <span class="tag">오답 유형 6종</span>
+        <span class="tag">원인 분석</span>
+        <span class="tag">이미지 첨부</span>
+      </div>
+      <span class="card-btn">
+        노트 열기
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+  </div>
+</section>
+
+<!-- ══ 특징 섹션 ══ -->
+<section class="features reveal">
+  <div class="section-label"><span>FEATURES</span></div>
+  <div class="feat-grid">
+    <div class="feat-item">
+      <span class="feat-icon">🖊</span>
+      <div class="feat-title">손글씨 필기</div>
+      <p class="feat-desc">터치·스타일러스·마우스 모두 지원. 펜·형광·지우개 도구.</p>
+    </div>
+    <div class="feat-item">
+      <span class="feat-icon">🖼</span>
+      <div class="feat-title">이미지 첨부</div>
+      <p class="feat-desc">교재 사진을 드래그·업로드·붙여넣기로 바로 삽입.</p>
+    </div>
+    <div class="feat-item">
+      <span class="feat-icon">📄</span>
+      <div class="feat-title">PDF · PNG 저장</div>
+      <p class="feat-desc">고해상도 이미지 또는 A4 PDF로 저장 및 카카오톡 공유.</p>
+    </div>
+    <div class="feat-item">
+      <span class="feat-icon">📲</span>
+      <div class="feat-title">PWA 홈화면</div>
+      <p class="feat-desc">GitHub Pages 배포 후 앱처럼 홈화면에 추가해 오프라인 사용.</p>
+    </div>
+    <div class="feat-item">
+      <span class="feat-icon">🖨</span>
+      <div class="feat-title">A4 인쇄 최적화</div>
+      <p class="feat-desc">여백 없음 설정으로 정확히 한 장에 맞게 인쇄.</p>
+    </div>
+    <div class="feat-item">
+      <span class="feat-icon">📱</span>
+      <div class="feat-title">모바일 완전 지원</div>
+      <p class="feat-desc">카카오톡 인앱 브라우저·iOS·Android 모두 동작.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 학원 정보 ══ -->
+<section class="info-section reveal">
+  <div class="info-inner">
+    <div class="info-left">
+      <span class="info-tag">ABOUT</span>
+      <h2 class="info-h">수학의 자신감,<br>시대학원에서 시작됩니다</h2>
+      <p class="info-p">체계적인 3단계 노트 시스템과 1:1 맞춤 지도로 중학교 기초부터 수능 수학까지 완성합니다.</p>
+      <div class="contact-row">
+        <div>
+          <div class="tel-sub">상담 문의</div>
+          <div class="tel">☎ 031-978-1117</div>
+          <div class="tel-sub" style="margin-top:6px;">경기도 고양시 덕양구 백양로51 네이버타운 8층</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-right">
+      <span class="info-tag">CURRICULUM</span>
+      <h2 class="info-h">학습 과정</h2>
+      <ul class="info-list">
+        <li>중학교 수학 — 개념 완성 및 내신 집중 대비</li>
+        <li>고등학교 수학 — 수1·수2·미적분·확통·기하</li>
+        <li>수능 수학 — 킬러문항 풀이 전략 및 실전 훈련</li>
+        <li>3단계 노트 시스템 — 개념·풀이·오답 순환 학습</li>
+        <li>정기 평가 및 1:1 피드백으로 취약점 집중 보완</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 푸터 ══ -->
+<footer class="footer reveal">
+  <div>
+    <div class="footer-brand">중고등부 수학전문 시대학원</div>
+    <div class="footer-copy" style="margin-top:5px;">☎ 031-978-1117 · 경기도 고양시 덕양구 백양로51 네이버타운 8층</div>
+  </div>
+  <button class="kakao-share" onclick="shareKakao()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#1a1a1a"><path d="M12 3C6.477 3 2 6.477 2 10.8c0 2.7 1.52 5.09 3.84 6.56l-.98 3.63 4.22-2.78c.9.18 1.89.29 2.92.29 5.523 0 10-3.477 10-7.8S17.523 3 12 3z"/></svg>
+    카카오톡 공유
+  </button>
+</footer>
+
+<script>
+/* ── 스크롤 등장 애니메이션 ── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ── 카카오톡 공유 ── */
+function shareKakao(){
+  const url  = window.location.href;
+  const text = '📚 시대학원 수학노트 시스템\n개념·풀이·오답 3단계로 수학 완성!\n\n' + url;
+
+  // 카카오 SDK 미사용 시 클립보드 복사 + 안내
+  if(navigator.share){
+    navigator.share({
+      title:'시대학원 — 중고등 수학전문',
+      text:'개념·풀이·오답 3단계 수학노트 시스템',
+      url: url
+    }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(text).then(()=>{
+      showToast('📋 링크가 복사되었습니다! 카카오톡에 붙여넣기 하세요.');
+    }).catch(()=>{
+      showToast('주소창의 링크를 카카오톡으로 공유하세요!');
+    });
+  }
+}
+
+function showToast(msg){
+  let t = document.getElementById('share-toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'share-toast';
+    t.style.cssText = `
+      position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+      background:#1e293b;color:white;padding:12px 24px;border-radius:24px;
+      font:600 .8rem/1 'Noto Sans KR';z-index:999;
+      box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap;
+      transition:opacity .3s;
+    `;
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.style.opacity = '0', 3000);
+}
+</script>
+</body>
+</html>

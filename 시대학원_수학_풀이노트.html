@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="시대풀이노트">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" id="pwa-manifest">
+<title>시대학원 수학 풀이노트</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Noto+Serif+KR:wght@400;600;700;900&display=swap');
+:root{
+  --ink:#0a0a0a; --gray:#555; --gray-light:#999;
+  --border:#bbb; --bg:#e0e0e0; --lh:28px;
+  --blue:#1d4ed8;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);overscroll-behavior:none;}
+
+/* ══ 컨트롤 패널 ══ */
+.controls{
+  position:fixed;top:0;left:0;right:0;z-index:300;
+  background:#111827;color:white;
+  padding:7px 12px;padding-top:calc(7px + env(safe-area-inset-top));
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
+}
+.cg{display:flex;align-items:center;gap:5px;}
+.cs{width:1px;height:22px;background:#374151;flex-shrink:0;}
+.cl{font-size:.7rem;font-weight:500;color:#94a3b8;white-space:nowrap;}
+.controls input[type=number]{
+  width:52px;padding:4px 6px;border:1px solid #374151;border-radius:5px;
+  background:#1f2937;color:white;font-family:inherit;font-size:.75rem;text-align:center;
+}
+.cb{padding:5px 11px;border:none;border-radius:5px;
+  font-family:inherit;font-size:.73rem;font-weight:700;cursor:pointer;
+  transition:all .12s;white-space:nowrap;user-select:none;}
+.cb.add   {background:#1d4ed8;color:white;}
+.cb.reset {background:#374151;color:#d1d5db;}
+.cb.print {background:#166534;color:white;}
+.cb.simg  {background:#0e7490;color:white;}
+.cb.spdf  {background:#7e22ce;color:white;}
+.cb.pen   {background:#1e3a5f;color:#93c5fd;border:1.5px solid #1e3a5f;}
+.cb.pen.on{background:#2563eb;color:white;border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.4);}
+.cb.hl    {background:#451a03;color:#fcd34d;border:1.5px solid #451a03;}
+.cb.hl.on {background:#b45309;color:white;border-color:#fbbf24;}
+.cb.erase {background:#1c1917;color:#a8a29e;border:1.5px solid #292524;}
+.cb.erase.on{background:#78350f;color:white;border-color:#f97316;}
+.cb.clr   {background:#450a0a;color:#fca5a5;}
+.palette{display:flex;gap:4px;align-items:center;}
+.sw{width:18px;height:18px;border-radius:50%;border:2px solid #374151;cursor:pointer;
+  transition:transform .1s,border-color .1s;flex-shrink:0;}
+.sw.on{border-color:#fff;transform:scale(1.15);}
+.thk{display:flex;gap:4px;align-items:center;}
+.tb{border:1.5px solid #374151;background:#1f2937;border-radius:4px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;width:28px;height:22px;}
+.tb.on{border-color:#60a5fa;background:#1e3a5f;}
+.td{background:white;border-radius:50%;}
+
+/* ── 모드배지 / 토스트 ── */
+.mbadge{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  padding:8px 22px;border-radius:20px;font:600 .78rem/1 'Noto Sans KR';z-index:400;
+  pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.mbadge.show{display:block;}
+.mbadge.pen-mode  {background:#1d4ed8;color:white;}
+.mbadge.hl-mode   {background:#b45309;color:white;}
+.mbadge.erase-mode{background:#78350f;color:white;}
+#toast{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#1e293b;color:white;padding:10px 22px;border-radius:20px;
+  font-size:.8rem;font-weight:600;z-index:400;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);white-space:nowrap;}
+
+/* ══ 페이지 컨테이너 ══ */
+.pages{
+  padding-top:calc(54px + env(safe-area-inset-top));
+  padding-bottom:48px;
+  display:flex;flex-direction:column;align-items:center;gap:24px;
+  padding-left:12px;padding-right:12px;
+}
+
+/* ══ A4 페이지 ══ */
+.page{
+  width:210mm;height:297mm;background:white;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  padding:7mm 12mm 5mm;
+  position:relative;
+  display:flex;flex-direction:column;gap:4px;
+  overflow:hidden;touch-action:auto;
+}
+.page.draw-active{touch-action:none;}
+
+/* 손글씨 캔버스 */
+.dc{position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:20;touch-action:none;pointer-events:none;}
+.dc.active{pointer-events:all;cursor:crosshair;}
+
+/* ── 헤더 ── */
+.ph{display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:5px;border-bottom:2.5px solid var(--ink);flex-shrink:0;}
+.hl2{display:flex;align-items:center;gap:7px;}
+.badge{width:30px;height:30px;background:var(--ink);border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font:900 11px/1 'Noto Serif KR';letter-spacing:1px;flex-shrink:0;}
+.ptitle{font:900 1.05rem/1 'Noto Serif KR';color:var(--ink);}
+.psub{font:600 .72rem/1 'Noto Sans KR';color:var(--blue);margin-left:6px;}
+.hr2{display:flex;gap:8px;align-items:center;}
+.mf{display:flex;align-items:center;gap:3px;font-size:.68rem;color:var(--gray);font-weight:600;}
+.mf input{border:none;border-bottom:1.5px solid var(--border);
+  font-family:inherit;font-size:.75rem;color:var(--ink);
+  padding:1px 4px;outline:none;background:transparent;width:72px;}
+.mf input.wide{width:96px;}
+
+/* ── 단원 정보 바 (한 줄: 단원명·출처·페이지·문제번호) ── */
+.info-bar{
+  display:flex;align-items:stretch;
+  border:2px solid var(--ink);border-radius:5px;
+  overflow:hidden;flex-shrink:0;
+}
+.info-label{
+  background:var(--ink);color:white;
+  font:700 .68rem/1 'Noto Sans KR';
+  padding:5px 10px;white-space:nowrap;letter-spacing:.08em;
+  display:flex;align-items:center;
+}
+.info-fields{
+  flex:1;display:flex;align-items:stretch;
+  background:white;
+}
+.info-field{
+  display:flex;align-items:center;gap:4px;
+  padding:4px 8px;
+  border-right:1.5px solid #ddd;
+  flex-shrink:0;
+}
+.info-field:last-child{border-right:none;flex:1;}
+.info-field .lbl{
+  font:700 .62rem/1 'Noto Sans KR';color:var(--gray-light);
+  white-space:nowrap;letter-spacing:.03em;flex-shrink:0;
+}
+.info-field input{
+  border:none;outline:none;
+  font:600 .78rem/1 'Noto Sans KR';color:var(--ink);
+  background:transparent;min-width:0;
+  padding:0;
+}
+.info-field input.f-unit{width:90px;}
+.info-field input.f-src {width:80px;}
+.info-field input.f-page{width:38px;text-align:center;}
+.info-field input.f-num {width:50px;}
+
+/* ══ 풀이 그리드 — 2×2 ══ */
+.solve-grid{
+  flex:1;min-height:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:4px;
+}
+
+/* 개별 풀이 박스 */
+.solve-box{
+  border:2px solid var(--ink);border-radius:5px;
+  display:flex;flex-direction:column;
+  overflow:hidden;min-height:0;
+}
+.solve-head{
+  background:var(--ink);color:white;
+  font:700 .65rem/1 'Noto Sans KR';
+  padding:3px 8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.solve-head .num{
+  background:white;color:var(--ink);
+  font:800 .6rem/1 'Noto Sans KR';
+  padding:1px 5px;border-radius:2px;margin-right:5px;
+}
+.solve-head .sub-fields{
+  display:flex;gap:6px;align-items:center;margin-left:6px;
+}
+.solve-head .sub-field{
+  display:flex;align-items:center;gap:3px;
+  font-size:.58rem;color:rgba(255,255,255,.7);
+}
+.solve-head .sub-field input{
+  border:none;border-bottom:1px solid rgba(255,255,255,.4);
+  background:transparent;color:white;
+  font:600 .65rem/1 'Noto Sans KR';
+  outline:none;padding:0 2px;width:50px;
+}
+.solve-head .sub-field input.w-page{width:28px;text-align:center;}
+.solve-head .sub-field input.w-num{width:36px;}
+
+/* 풀이 공간 — 모눈 배경 */
+.solve-area{
+  flex:1;min-height:0;
+  outline:none;
+  padding:4px 6px;
+  font-size:.82rem;line-height:var(--lh);
+  /* 5mm 모눈 */
+  background-image:
+    linear-gradient(to right, #e8e8e8 1px, transparent 1px),
+    linear-gradient(to bottom, #e8e8e8 1px, transparent 1px);
+  background-size:18.9px 18.9px;  /* 5mm @ 96dpi */
+  background-color:white;
+  overflow:hidden;
+  resize:none;
+}
+
+/* ── 푸터 ── */
+.pf{flex-shrink:0;padding-top:4px;border-top:1.5px solid var(--ink);display:flex;align-items:center;}
+.fb{font:700 .72rem/1 'Noto Serif KR';color:var(--ink);}
+.fb .tel{font:400 .68rem/1 'Noto Sans KR';color:var(--gray);margin-left:8px;}
+.pn{position:absolute;bottom:5mm;right:12mm;font-size:.62rem;color:#bbb;font-family:'Noto Serif KR';}
+
+/* ══ 인쇄 ══ */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .controls,.mbadge,#toast,#guide-panel{display:none!important;}
+  body{background:white;}
+  .pages{padding:0;gap:0;}
+  .page{
+    box-shadow:none;width:210mm;height:297mm;
+    page-break-after:always;page-break-inside:avoid;
+    padding:7mm 11mm 5mm;gap:3px;
+    overflow:hidden;display:flex;flex-direction:column;
+  }
+  .page:last-child{page-break-after:avoid;}
+  .badge{background:#000!important;}
+  .info-label{background:#000!important;}
+  .solve-head{background:#000!important;}
+  .solve-area{
+    background-image:
+      linear-gradient(to right,#ccc 1px,transparent 1px),
+      linear-gradient(to bottom,#ccc 1px,transparent 1px)!important;
+    background-size:18.9px 18.9px!important;
+  }
+  .solve-grid{gap:3px;}
+  [contenteditable]{outline:none!important;}
+  .dc{display:block!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- 컨트롤 패널 -->
+<div class="controls">
+  <div class="cg">
+    <span class="cl">매수</span>
+    <input type="number" id="pageCount" value="1" min="1" max="20">
+    <button class="cb add"   onclick="addPages(false)">＋ 생성</button>
+    <button class="cb reset" onclick="resetPages()">↺ 초기화</button>
+  </div>
+  <div class="cs"></div>
+  <div class="cg">
+    <button class="cb pen"   id="btn-pen"   onclick="setTool('pen')">🖊 펜</button>
+    <button class="cb hl"    id="btn-hl"    onclick="setTool('hl')">🖍 형광</button>
+    <button class="cb erase" id="btn-erase" onclick="setTool('erase')">◻ 지우개</button>
+    <button class="cb clr"   onclick="clearCanvas()">✕</button>
+  </div>
+  <div class="cs"></div>
+  <div class="palette">
+    <div class="sw on" style="background:#1a40c8" data-color="#1a40c8" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#dc2626" data-color="#dc2626" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#000000" data-color="#000000" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#16a34a" data-color="#16a34a" onclick="setColor(this)"></div>
+    <div class="sw"    style="background:#7c3aed" data-color="#7c3aed" onclick="setColor(this)"></div>
+  </div>
+  <div class="cs"></div>
+  <div class="thk">
+    <div class="tb on" data-size="1.5" onclick="setSz(this)"><div class="td" style="width:3px;height:3px"></div></div>
+    <div class="tb"    data-size="3"   onclick="setSz(this)"><div class="td" style="width:6px;height:6px"></div></div>
+    <div class="tb"    data-size="5"   onclick="setSz(this)"><div class="td" style="width:10px;height:10px"></div></div>
+  </div>
+  <div class="cs"></div>
+  <div class="cg">
+    <button class="cb simg" onclick="saveImage()">🖼 이미지저장</button>
+    <button class="cb spdf" onclick="savePDF()">📄 PDF저장</button>
+    <button class="cb print" onclick="window.print()">🖨 인쇄</button>
+    <button class="cb" style="background:#f59e0b;color:#111;font-weight:800;" onclick="showPWA()">📲 홈화면추가</button>
+    <button class="cb" style="background:#c9a84c;color:#111;font-weight:800;" onclick="location.href='index.html'">🏠 메인</button>
+  </div>
+</div>
+
+<div class="mbadge" id="mbadge"></div>
+<div id="toast"></div>
+
+<!-- PWA 홈화면 안내 모달 -->
+<div id="pwa-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:24px 28px;max-width:360px;width:90%;font-family:'Noto Sans KR',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    <div style="font:800 1rem/1 'Noto Serif KR';color:#111;margin-bottom:16px;">📲 홈화면에 추가하기</div>
+    <div style="font-size:.82rem;color:#374151;line-height:1.8;margin-bottom:10px;">
+      <b style="color:#1d4ed8;">① GitHub에 업로드</b><br>
+      1. github.com 접속 → 새 저장소 생성<br>
+      2. 이 파일을 <b>index.html</b> 이름으로 업로드<br>
+      3. Settings → Pages → Branch: main → Save<br>
+      4. 주소: <b>https://아이디.github.io/저장소명</b>
+    </div>
+    <div style="font-size:.82rem;color:#374151;line-height:1.8;margin-bottom:10px;">
+      <b style="color:#16a34a;">② iOS (Safari)</b><br>
+      공유 버튼(□↑) → "홈 화면에 추가" 탭
+    </div>
+    <div style="font-size:.82rem;color:#374151;line-height:1.8;margin-bottom:18px;">
+      <b style="color:#dc2626;">③ Android (Chrome)</b><br>
+      우측 상단 ⋮ 메뉴 → "앱 설치" 또는 "홈화면에 추가"
+    </div>
+    <button onclick="document.getElementById('pwa-modal').style.display='none'" style="width:100%;padding:10px;background:#111827;color:white;border:none;border-radius:8px;font:700 .85rem/1 'Noto Sans KR';cursor:pointer;">닫기</button>
+  </div>
+</div>
+
+<!-- 사용 매뉴얼 아코디언 -->
+<div id="guide-panel" style="width:210mm;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:'Noto Sans KR',sans-serif;flex-shrink:0;">
+  <button onclick="toggleGuide()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:#1e293b;color:white;border:none;cursor:pointer;padding:12px 18px;font:700 .88rem/1 'Noto Sans KR';gap:8px;">
+    <span style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#1d4ed8;color:white;font-weight:900;font-size:.7rem;padding:2px 8px;border-radius:4px;">시대학원</span>
+      📘 수학 풀이노트 사용법 &amp; 효과적인 풀이 학습 가이드
+    </span>
+    <span id="g-arrow" style="font-size:1rem;transition:transform .3s;transform:rotate(-90deg);">▼</span>
+  </button>
+  <div id="g-body" style="background:#f8fafc;overflow:hidden;transition:max-height .4s ease;max-height:0px;">
+    <div style="padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.78rem;line-height:1.75;color:#1e293b;">
+
+      <!-- 노트 구성 -->
+      <div style="grid-column:1/-1;background:#1e293b;color:white;border-radius:8px;padding:13px 16px;">
+        <div style="font:800 .88rem/1 'Noto Serif KR';color:#93c5fd;margin-bottom:10px;">📋 풀이노트 구성</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;text-align:center;font-size:.72rem;">
+          <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">📌</div><div style="font-weight:700;color:#93c5fd;margin-bottom:2px;">단원정보 바</div><div style="color:#94a3b8;font-size:.66rem;">단원명·출처<br>페이지·번호<br>한 줄 입력</div></div>
+          <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">①</div><div style="font-weight:700;color:#60a5fa;margin-bottom:2px;">풀이 박스 1</div><div style="color:#94a3b8;font-size:.66rem;">쪽·문제번호<br>개별 입력<br>모눈 필기</div></div>
+          <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">②</div><div style="font-weight:700;color:#60a5fa;margin-bottom:2px;">풀이 박스 2</div><div style="color:#94a3b8;font-size:.66rem;">쪽·문제번호<br>개별 입력<br>모눈 필기</div></div>
+          <div style="background:#0f172a;border-radius:6px;padding:9px 5px;"><div style="font-size:1rem;margin-bottom:3px;">③④</div><div style="font-weight:700;color:#60a5fa;margin-bottom:2px;">풀이 박스 3·4</div><div style="color:#94a3b8;font-size:.66rem;">하단 2칸<br>동일 구성<br>1페이지=4문제</div></div>
+        </div>
+      </div>
+
+      <!-- 입력 방법 -->
+      <div style="background:white;border:1.5px solid #dbeafe;border-radius:8px;padding:13px 15px;">
+        <div style="font:700 .8rem/1 'Noto Sans KR';color:#1d4ed8;border-bottom:2px solid #dbeafe;padding-bottom:6px;margin-bottom:9px;">⌨️ 입력 방법</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:.73rem;">
+          <div><b style="color:#1d4ed8;">📌 단원정보</b> — 상단 바에 단원명·출처·페이지·문제번호 입력.</div>
+          <div><b style="color:#1d4ed8;">📦 각 박스</b> — 박스 우측 상단에 쪽·문제번호 개별 입력.</div>
+          <div><b style="color:#1d4ed8;">✏️ 텍스트 풀이</b> — 박스 내부 클릭 후 바로 입력.</div>
+          <div><b style="color:#1d4ed8;">🖊 손글씨</b> — 상단 펜/형광/지우개로 모눈 위에 직접 필기.</div>
+          <div><b style="color:#1d4ed8;">🎨 색상·굵기</b> — 컬러 팔레트와 두께 버튼으로 조절.</div>
+        </div>
+      </div>
+
+      <!-- 효과적인 풀이 정리법 -->
+      <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:13px 15px;">
+        <div style="font:700 .8rem/1 'Noto Sans KR';color:#059669;border-bottom:2px solid #d1fae5;padding-bottom:6px;margin-bottom:9px;">🧠 효과적인 풀이 정리 4원칙</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:.73rem;">
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#1d4ed8;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">1</span><div><b>단계별 번호</b> — ①②③ 으로 흐름을 끊어 쓰면 검토가 쉬움.</div></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#1d4ed8;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">2</span><div><b>조건·공식을 먼저</b> — 풀기 전 주어진 조건과 쓸 공식을 박스 상단에 메모.</div></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#1d4ed8;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">3</span><div><b>검산 표시</b> — 풀이 완료 후 ✓ 표시. 의심되는 줄은 빨간 펜으로 체크.</div></div>
+          <div style="display:flex;gap:8px;align-items:flex-start;"><span style="background:#1d4ed8;color:white;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.63rem;font-weight:800;">4</span><div><b>틀리면 오답노트로</b> — 이 노트에서 틀린 문제는 오답노트에 다시 정리.</div></div>
+        </div>
+      </div>
+
+      <!-- 저장·출력 -->
+      <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:13px 15px;">
+        <div style="font:700 .8rem/1 'Noto Sans KR';color:#0e7490;border-bottom:2px solid #cffafe;padding-bottom:6px;margin-bottom:9px;">💾 저장 &amp; 출력</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:.73rem;">
+          <div><b style="color:#0e7490;">🖼 이미지저장</b> — 페이지별 PNG 고해상도. 카톡 공유 가능.</div>
+          <div><b style="color:#0e7490;">📄 PDF저장</b> — 전 페이지 A4 PDF 한 파일.</div>
+          <div><b style="color:#0e7490;">🖨 인쇄</b> — 여백 "없음" 설정 시 한 장에 딱 맞게 출력.</div>
+          <div><b style="color:#0e7490;">📲 홈화면추가</b> — GitHub Pages 업로드 후 PWA로 설치.</div>
+        </div>
+      </div>
+
+      <!-- 모눈 활용 + 1페이지 = 4문제 -->
+      <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:13px 15px;">
+        <div style="font:700 .8rem/1 'Noto Sans KR';color:#7c3aed;border-bottom:2px solid #ede9fe;padding-bottom:6px;margin-bottom:9px;">📐 모눈 칸 활용법</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:.73rem;">
+          <div><b style="color:#7c3aed;">📏 5mm 모눈</b> — 수식·도형·그래프를 정렬감 있게 작성.</div>
+          <div><b style="color:#7c3aed;">↕ 칸 나누기</b> — 가로선을 긋거나 펜으로 세로 구분선 추가.</div>
+          <div><b style="color:#7c3aed;">🎨 색상 구분</b> — 파랑:풀이 / 빨강:실수·검산 / 초록:공식.</div>
+          <div><b style="color:#7c3aed;">1페이지 = 4문제</b> — 한 장에 4문제씩 체계적으로 관리.</div>
+        </div>
+      </div>
+
+      <!-- 학습 사이클 -->
+      <div style="grid-column:1/-1;background:linear-gradient(135deg,#1e3a8a,#1e293b);color:white;border-radius:8px;padding:13px 16px;">
+        <div style="font:700 .8rem/1 'Noto Sans KR';color:#93c5fd;margin-bottom:9px;">🔄 풀이노트 → 오답노트 연계 학습 사이클</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;text-align:center;font-size:.7rem;">
+          <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">📘</div><div style="font-weight:700;color:#93c5fd;">STEP 1<br>풀이 작성</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">풀이노트에<br>단계별 풀이<br>기록</div></div>
+          <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">✅</div><div style="font-weight:700;color:#34d399;">STEP 2<br>채점·검산</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">풀이 완료 후<br>검산 표시<br>✓ / ✗</div></div>
+          <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">📕</div><div style="font-weight:700;color:#fca5a5;">STEP 3<br>오답 이전</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">틀린 문제<br>오답노트로<br>상세 분석</div></div>
+          <div style="background:rgba(255,255,255,.07);border-radius:6px;padding:9px 5px;"><div style="font-size:.95rem;margin-bottom:3px;">🏆</div><div style="font-weight:700;color:#fbbf24;">STEP 4<br>반복 정복</div><div style="color:#94a3b8;margin-top:3px;font-size:.67rem;">오답 문제<br>재풀이로<br>완전 습득</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="pages" id="pages"></div>
+
+<script>
+let totalPages=0, tool=null, penColor='#1a40c8', penSize=1.5;
+let isDrawing=false, lastX=0, lastY=0, activeCanvas=null;
+
+/* 데모 데이터 */
+const DEMO = {
+  name:'김시대', date:'2026-03-05',
+  unit:'수열의 극한', src:'수학의 정석', page:'127',
+  boxes:[
+    { no:'23', page:'127', num:'예제1',
+      text:'lim(n→∞) (√(n²+an) + bn − 4) = 5\n\n① √(n²+an) ≈ n + a/2\n② (1+b)n + a/2 → 수렴\n③ 1+b=0 → b=−1\n④ a/2−4=5 → a=18\n∴ a+b = 17' },
+    { no:'24', page:'127', num:'유제1', text:'' },
+    { no:'25', page:'128', num:'예제2', text:'' },
+    { no:'26', page:'128', num:'유제2', text:'' },
+  ]
+};
+
+/* ══ 페이지 생성 ══ */
+function createPage(num, demo){
+  const d = demo ? DEMO : {};
+  const boxes = d.boxes || [{},{},{},{}];
+
+  const boxHTML = boxes.map((b,i) => `
+    <div class="solve-box">
+      <div class="solve-head">
+        <span>
+          <span class="num">${String(i+1).padStart(2,'0')}</span>풀이
+        </span>
+        <div class="sub-fields">
+          <div class="sub-field">
+            <span>p.</span>
+            <input class="w-page" value="${b.page||''}" placeholder="쪽">
+          </div>
+          <div class="sub-field">
+            <span>번호</span>
+            <input class="w-num" value="${b.num||''}" placeholder="문제번호">
+          </div>
+        </div>
+      </div>
+      <div class="solve-area" contenteditable="true">${(b.text||'').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+
+  return `
+  <div class="page" id="page-${num}">
+    <canvas class="dc" id="cv-${num}"></canvas>
+
+    <!-- 헤더 -->
+    <div class="ph">
+      <div class="hl2">
+        <div class="badge">시대</div>
+        <div class="ptitle">수학 풀이노트</div>
+        <div class="psub">SOLUTION NOTE</div>
+      </div>
+      <div class="hr2">
+        <div class="mf">이름 <input value="${d.name||''}" placeholder=""></div>
+        <div class="mf">날짜 <input value="${d.date||''}" placeholder=""></div>
+      </div>
+    </div>
+
+    <!-- 단원정보 바 (단원명·출처·페이지·문제번호 한 줄) -->
+    <div class="info-bar">
+      <span class="info-label">단 원</span>
+      <div class="info-fields">
+        <div class="info-field">
+          <span class="lbl">단원명</span>
+          <input class="f-unit" value="${d.unit||''}" placeholder="단원명 입력">
+        </div>
+        <div class="info-field">
+          <span class="lbl">출 처</span>
+          <input class="f-src" value="${d.src||''}" placeholder="교재명">
+        </div>
+        <div class="info-field">
+          <span class="lbl">페이지</span>
+          <input class="f-page" value="${d.page||''}" placeholder="p.">
+        </div>
+        <div class="info-field">
+          <span class="lbl">문제번호</span>
+          <input class="f-num" value="${d.num||''}" placeholder="번호">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2×2 풀이 그리드 -->
+    <div class="solve-grid">
+      ${boxHTML}
+    </div>
+
+    <!-- 푸터 -->
+    <div class="pf">
+      <div class="fb">중고등부 수학전문 시대학원<span class="tel">☎ 031-978-1117</span></div>
+    </div>
+    <div class="pn">${num}</div>
+  </div>`;
+}
+
+function addPages(demo){
+  const n=parseInt(document.getElementById('pageCount').value)||1;
+  const ct=document.getElementById('pages');
+  for(let i=0;i<n;i++){
+    totalPages++;
+    ct.insertAdjacentHTML('beforeend', createPage(totalPages, demo&&i===0));
+    initCanvas(totalPages);
+  }
+}
+function resetPages(){
+  if(!confirm('초기화하시겠습니까?')) return;
+  totalPages=0;
+  document.getElementById('pages').innerHTML='';
+  addPages(false);
+}
+
+/* ══ 캔버스 ══ */
+function initCanvas(num){
+  const page=document.getElementById('page-'+num);
+  const cv=document.getElementById('cv-'+num);
+  if(!page||!cv) return;
+  function sz(){
+    const r=page.getBoundingClientRect();
+    const w=Math.round(r.width),h=Math.round(r.height);
+    if(cv.width===w&&cv.height===h) return;
+    const t=document.createElement('canvas');
+    t.width=cv.width;t.height=cv.height;
+    if(cv.width>0&&cv.height>0) t.getContext('2d').drawImage(cv,0,0);
+    cv.width=w;cv.height=h;
+    if(t.width>0&&t.height>0) cv.getContext('2d').drawImage(t,0,0,w,h);
+  }
+  sz();
+  window.addEventListener('resize',()=>setTimeout(sz,150));
+
+  function pos(cx,cy){const r=cv.getBoundingClientRect();return{x:cx-r.left,y:cy-r.top};}
+  function applyCtx(ctx){
+    ctx.lineCap='round';ctx.lineJoin='round';
+    if(tool==='erase'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=30;ctx.globalAlpha=1;}
+    else if(tool==='hl'){ctx.globalCompositeOperation='source-over';ctx.strokeStyle=penColor;ctx.lineWidth=18;ctx.globalAlpha=0.35;}
+    else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=penColor;ctx.lineWidth=penSize;ctx.globalAlpha=1;}
+  }
+  function startAt(x,y){
+    if(!tool)return;
+    isDrawing=true;activeCanvas=cv;lastX=x;lastY=y;
+    const ctx=cv.getContext('2d');applyCtx(ctx);
+    ctx.beginPath();ctx.arc(x,y,ctx.lineWidth/2,0,Math.PI*2);
+    if(tool!=='hl'){ctx.fillStyle=tool==='erase'?'rgba(0,0,0,1)':penColor;if(tool==='erase')ctx.globalCompositeOperation='destination-out';ctx.fill();}
+    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  }
+  function moveTo(x,y){
+    if(!isDrawing||activeCanvas!==cv)return;
+    const ctx=cv.getContext('2d');applyCtx(ctx);
+    ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();
+    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+    lastX=x;lastY=y;
+  }
+  cv.addEventListener('mousedown',e=>{e.preventDefault();const p=pos(e.clientX,e.clientY);startAt(p.x,p.y);});
+  cv.addEventListener('mousemove',e=>{if(!isDrawing)return;e.preventDefault();const p=pos(e.clientX,e.clientY);moveTo(p.x,p.y);});
+  cv.addEventListener('mouseup',()=>stopDraw());
+  cv.addEventListener('mouseleave',()=>stopDraw());
+  cv.addEventListener('touchstart',e=>{if(!tool)return;e.preventDefault();e.stopPropagation();const t=e.changedTouches[0];startAt(...Object.values(pos(t.clientX,t.clientY)));},{passive:false});
+  cv.addEventListener('touchmove',e=>{if(!isDrawing||activeCanvas!==cv)return;e.preventDefault();e.stopPropagation();const t=e.changedTouches[0];const p=pos(t.clientX,t.clientY);moveTo(p.x,p.y);},{passive:false});
+  cv.addEventListener('touchend',e=>{e.preventDefault();stopDraw();},{passive:false});
+  cv.addEventListener('touchcancel',e=>{e.preventDefault();stopDraw();},{passive:false});
+}
+function stopDraw(){isDrawing=false;activeCanvas=null;}
+
+/* ══ 도구 ══ */
+function setTool(t){
+  tool=(tool===t)?null:t;
+  const on=tool!==null;
+  ['pen','hl','erase'].forEach(x=>{const b=document.getElementById('btn-'+x);if(b)b.classList.toggle('on',tool===x);});
+  document.querySelectorAll('.dc').forEach(c=>{c.classList.toggle('active',on);c.style.pointerEvents=on?'all':'none';c.style.zIndex=on?'20':'-1';});
+  document.querySelectorAll('[contenteditable]').forEach(el=>el.contentEditable=on?'false':'true');
+  document.querySelectorAll('input:not([type=number]):not([type=file])').forEach(el=>el.disabled=on);
+  const b=document.getElementById('mbadge');if(!b)return;
+  if(!on){b.className='mbadge';return;}
+  const lbl={pen:'✏️ 펜 모드',hl:'🖍 형광펜 모드',erase:'◻ 지우개 모드'};
+  const cls={pen:'pen-mode',hl:'hl-mode',erase:'erase-mode'};
+  b.textContent=lbl[tool];b.className=`mbadge show ${cls[tool]}`;
+}
+function setColor(el){penColor=el.dataset.color;document.querySelectorAll('.sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');}
+function setSz(el){penSize=parseFloat(el.dataset.size);document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+function clearCanvas(){if(!confirm('모든 손글씨를 지우시겠습니까?'))return;document.querySelectorAll('.dc').forEach(c=>c.getContext('2d').clearRect(0,0,c.width,c.height));}
+
+/* ══ 저장 ══ */
+function toast(msg,dur=2500){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',dur);}
+
+async function renderPage(pageEl,scale=2){
+  if(!window.html2canvas){
+    await new Promise((res,rej)=>{const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  }
+  return html2canvas(pageEl,{scale,useCORS:true,allowTaint:true,backgroundColor:'#fff',logging:false,
+    ignoreElements:el=>['controls','mbadge','toast'].some(c=>el.id===c||el.classList?.contains(c))});
+}
+async function saveImage(){
+  const pages=document.querySelectorAll('.page');if(!pages.length)return;
+  toast('🖼 이미지 생성 중...',10000);
+  try{
+    for(let i=0;i<pages.length;i++){
+      const c=await renderPage(pages[i],2);
+      const a=document.createElement('a');
+      a.download=`시대학원_풀이노트_${i+1}p.png`;a.href=c.toDataURL('image/png');a.click();
+      await new Promise(r=>setTimeout(r,400));
+    }
+    toast(`✅ ${pages.length}장 저장 완료!`);
+  }catch(e){toast('❌ 실패: '+e.message);}
+}
+async function savePDF(){
+  const pages=document.querySelectorAll('.page');if(!pages.length)return;
+  toast('📄 PDF 생성 중...',15000);
+  if(!window.jspdf){await new Promise((res,rej)=>{const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+  try{
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    for(let i=0;i<pages.length;i++){
+      if(i>0)pdf.addPage();
+      const c=await renderPage(pages[i],2);
+      pdf.addImage(c.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297);
+    }
+    pdf.save('시대학원_풀이노트.pdf');toast('✅ PDF 저장 완료!');
+  }catch(e){toast('❌ PDF 실패: '+e.message);}
+}
+
+/* ── 매뉴얼 토글 ── */
+function toggleGuide(){
+  const body=document.getElementById('g-body');
+  const arrow=document.getElementById('g-arrow');
+  const open=body.style.maxHeight!=='0px';
+  body.style.maxHeight=open?'0px':'2000px';
+  arrow.style.transform=open?'rotate(-90deg)':'rotate(0deg)';
+}
+
+/* ── PWA 홈화면 안내 ── */
+function showPWA(){
+  document.getElementById('pwa-modal').style.display='flex';
+}
+
+/* ── PWA manifest 동적 생성 ── */
+(function(){
+  const manifest={
+    name:'시대학원 수학 풀이노트',
+    short_name:'시대풀이노트',
+    start_url:'.',
+    display:'standalone',
+    background_color:'#111827',
+    theme_color:'#111827',
+    icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="18" fill="%23111827"/><text y=".9em" font-size="72" x="50%" dominant-baseline="middle" text-anchor="middle" fill="white">📘</text></svg>',sizes:'any',type:'image/svg+xml'}]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').href=url;
+
+  if('serviceWorker' in navigator){
+    const sw=`self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));`;
+    const swBlob=new Blob([sw],{type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+  }
+})();
+
+/* ── 초기 실행 ── */
+(function(){
+  const panel=document.getElementById('guide-panel');
+  const pages=document.getElementById('pages');
+  if(panel&&pages) pages.prepend(panel);
+})();
+addPages(true);
+</script>
+</body>
+</html>

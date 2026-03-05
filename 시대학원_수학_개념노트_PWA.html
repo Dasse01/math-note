@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="시대개념노트">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#111827">
+<title>시대학원 수학 개념노트</title>
+
+<!-- PWA Manifest 인라인 생성 -->
+<script>
+(function(){
+  const manifest = {
+    name: "시대학원 수학 개념노트",
+    short_name: "시대개념노트",
+    description: "시대학원 수학 개념노트 - 손글씨 지원",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#111827",
+    theme_color: "#111827",
+    orientation: "portrait",
+    icons: [
+      { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%23111827'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-size='100' font-family='serif' font-weight='900' fill='%23f59e0b'%3E시%3C/text%3E%3C/svg%3E", sizes:"192x192", type:"image/svg+xml" },
+      { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='64' fill='%23111827'/%3E%3Ctext x='256' y='340' text-anchor='middle' font-size='280' font-family='serif' font-weight='900' fill='%23f59e0b'%3E시%3C/text%3E%3C/svg%3E", sizes:"512x512", type:"image/svg+xml" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel = 'manifest'; link.href = url;
+  document.head.appendChild(link);
+})();
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Noto+Serif+KR:wght@400;600;700;900&display=swap');
+
+:root {
+  --ink: #0a0a0a;
+  --gray: #555;
+  --gray-light: #999;
+  --border: #aaa;
+  --bg-page: #e0e0e0;
+  --line-h: 28px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'Noto Sans KR', sans-serif; background:var(--bg-page); overscroll-behavior:none; }
+
+/* ══════════════════════════════════
+   컨트롤 패널
+══════════════════════════════════ */
+.controls {
+  position:fixed; top:0; left:0; right:0; z-index:300;
+  background:#111827; color:white;
+  padding:7px 12px;
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
+  /* iOS Safe Area */
+  padding-top: calc(7px + env(safe-area-inset-top));
+}
+.ctrl-group { display:flex; align-items:center; gap:5px; }
+.ctrl-sep { width:1px; height:22px; background:#374151; flex-shrink:0; }
+.ctrl-label { font-size:.7rem; font-weight:500; color:#94a3b8; white-space:nowrap; }
+.controls input[type=number] {
+  width:52px; padding:4px 6px;
+  border:1px solid #374151; border-radius:5px;
+  background:#1f2937; color:white;
+  font-family:inherit; font-size:.75rem; text-align:center;
+}
+.ctrl-btn {
+  padding:5px 11px; border:none; border-radius:5px;
+  font-family:inherit; font-size:.73rem; font-weight:700; cursor:pointer;
+  transition:all .12s; white-space:nowrap; user-select:none;
+}
+.ctrl-btn.add    { background:#1d4ed8; color:white; }
+.ctrl-btn.reset  { background:#374151; color:#d1d5db; }
+.ctrl-btn.print  { background:#166534; color:white; }
+.ctrl-btn.save-img { background:#0e7490; color:white; }
+.ctrl-btn.save-pdf { background:#7e22ce; color:white; }
+.ctrl-btn.github   { background:#f59e0b; color:#111; font-weight:800; }
+.ctrl-btn.pen.on { background:#2563eb; color:white; border-color:#60a5fa; box-shadow:0 0 0 2px rgba(96,165,250,.4); }
+.ctrl-btn.hl     { background:#451a03; color:#fcd34d; border:1.5px solid #451a03; }
+.ctrl-btn.hl.on  { background:#b45309; color:white; border-color:#fbbf24; box-shadow:0 0 0 2px rgba(251,191,36,.4); }
+.ctrl-btn.erase  { background:#1c1917; color:#a8a29e; border:1.5px solid #292524; }
+.ctrl-btn.erase.on { background:#78350f; color:white; border-color:#f97316; }
+.ctrl-btn.clear  { background:#450a0a; color:#fca5a5; }
+
+/* 색상 팔레트 */
+.palette { display:flex; gap:4px; align-items:center; }
+.swatch {
+  width:18px; height:18px; border-radius:50%;
+  border:2px solid #374151; cursor:pointer;
+  transition:transform .1s, border-color .1s;
+  flex-shrink:0;
+}
+.swatch:active { transform:scale(1.2); }
+.swatch.on { border-color:#fff; transform:scale(1.15); }
+
+/* 굵기 */
+.thickness { display:flex; gap:4px; align-items:center; }
+.thick-btn {
+  border:1.5px solid #374151; background:#1f2937;
+  border-radius:4px; cursor:pointer; display:flex;
+  align-items:center; justify-content:center;
+  width:28px; height:22px; transition:border-color .1s;
+}
+.thick-btn.on { border-color:#60a5fa; background:#1e3a5f; }
+.thick-dot { background:white; border-radius:50%; }
+
+/* 입력 모드 안내 배지 */
+.mode-badge {
+  display:none; position:fixed;
+  bottom:20px; left:50%; transform:translateX(-50%);
+  padding:8px 22px; border-radius:20px;
+  font:600 .78rem/1 'Noto Sans KR'; z-index:400;
+  pointer-events:none; white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+}
+.mode-badge.show { display:block; }
+.mode-badge.pen-mode  { background:#1d4ed8; color:white; }
+.mode-badge.hl-mode   { background:#b45309; color:white; }
+.mode-badge.erase-mode{ background:#78350f; color:white; }
+
+/* PWA 설치 안내 */
+.install-banner {
+  display:none; position:fixed;
+  bottom:60px; left:50%; transform:translateX(-50%);
+  background:#1e293b; color:white; border:1px solid #334155;
+  padding:10px 18px; border-radius:10px; z-index:400;
+  font-size:.75rem; text-align:center; max-width:320px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.install-banner b { color:#f59e0b; }
+.install-banner .close-btn {
+  margin-top:6px; display:inline-block;
+  background:#374151; color:#d1d5db; border:none;
+  padding:4px 12px; border-radius:4px; cursor:pointer; font-size:.7rem;
+}
+
+.pages {
+  padding-top: calc(54px + env(safe-area-inset-top));
+  padding-bottom:48px;
+  display:flex; flex-direction:column; align-items:center; gap:24px;
+  padding-left:12px; padding-right:12px;
+}
+
+/* ══════════════════════════
+   A4 페이지
+══════════════════════════ */
+.page {
+  width:210mm; height:297mm;
+  background:white;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  padding:8mm 13mm 6mm;
+  position:relative;
+  display:flex; flex-direction:column; gap:4px;
+  overflow:hidden;
+  touch-action:auto;
+}
+.page.draw-active { touch-action:none; }
+
+/* 손글씨 캔버스 오버레이 */
+.draw-canvas {
+  position:absolute; top:0; left:0;
+  width:100%; height:100%;
+  z-index:20;
+  /* 항상 터치액션 차단 - 이벤트는 JS로 제어 */
+  touch-action: none;
+  /* 기본: 클릭/터치 통과 */
+  pointer-events: none;
+}
+.draw-canvas.active {
+  /* 도구 선택 시: 이벤트 수신 */
+  pointer-events: all;
+  cursor: crosshair;
+}
+
+/* ── 헤더 ── */
+.page-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:5px; border-bottom:2.5px solid var(--ink); flex-shrink:0;
+}
+.hdr-left { display:flex; align-items:center; gap:7px; }
+.hdr-badge {
+  width:30px; height:30px; background:var(--ink); border-radius:5px;
+  display:flex; align-items:center; justify-content:center;
+  color:white; font:900 11px/1 'Noto Serif KR'; letter-spacing:1px; flex-shrink:0;
+}
+.hdr-title { font:900 1.05rem/1 'Noto Serif KR'; color:var(--ink); }
+.hdr-right { display:flex; gap:8px; align-items:center; }
+.meta-field { display:flex; align-items:center; gap:3px; font-size:.68rem; color:var(--gray); font-weight:600; }
+.meta-field input {
+  border:none; border-bottom:1.5px solid var(--border);
+  font-family:inherit; font-size:.75rem; color:var(--ink);
+  padding:1px 4px; outline:none; background:transparent; width:72px;
+}
+.meta-field input.wide { width:96px; }
+
+/* ── 단원 바 ── */
+.unit-bar {
+  display:flex; align-items:stretch;
+  border:2px solid var(--ink); border-radius:5px;
+  overflow:hidden; flex-shrink:0;
+}
+.unit-label {
+  background:var(--ink); color:white;
+  font:700 .68rem/1 'Noto Sans KR';
+  padding:5px 11px; white-space:nowrap; letter-spacing:.1em;
+  display:flex; align-items:center;
+}
+.unit-input {
+  flex:1; border:none; outline:none;
+  font:700 .88rem/1 'Noto Sans KR';
+  color:var(--ink); padding:5px 10px; background:white;
+}
+
+/* ── 섹션 타이틀 바 ── */
+.sec-bar {
+  background:var(--ink); color:white;
+  font:700 .68rem/1 'Noto Sans KR';
+  padding:4px 10px; display:flex; align-items:center; gap:5px; flex-shrink:0;
+}
+.sec-bar .tag {
+  background:white; color:var(--ink);
+  font:800 .6rem/1 'Noto Sans KR';
+  padding:1px 4px; border-radius:2px;
+}
+
+/* ── 줄선 영역 ── */
+.lined {
+  outline:none; font-size:.85rem; line-height:var(--line-h);
+  padding:3px 10px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px, transparent calc(var(--line-h) - 1px),
+    #d5d5d5 calc(var(--line-h) - 1px), #d5d5d5 var(--line-h)
+  );
+  background-position:0 0; width:100%;
+}
+
+/* 섹션 크기 */
+.problem-wrap  { border:2px solid var(--ink); border-radius:5px; overflow:hidden; flex:2 1 0; display:flex; flex-direction:column; min-height:0; }
+.solution-wrap { border:2px solid var(--ink); border-radius:5px; overflow:hidden; flex:3 1 0; display:flex; flex-direction:column; min-height:0; }
+.concept-wrap  { border:2px solid var(--ink); border-radius:5px; overflow:hidden; flex:2 1 0; display:flex; flex-direction:column; min-height:0; }
+.formula-wrap  { border:2px solid var(--ink); border-radius:5px; overflow:hidden; flex:1.4 1 0; display:flex; flex-direction:column; min-height:0; }
+.problem-area, .solution-area, .concept-area { flex:1; min-height:0; }
+
+/* ── 문제 드롭존 ── */
+.problem-drop-zone {
+  flex:1; min-height:0; display:flex; flex-direction:column;
+  position:relative; overflow:hidden;
+  transition:background .15s;
+}
+.problem-drop-zone.drag-over {
+  background:rgba(37,99,235,.06);
+  outline:2.5px dashed #2563eb;
+  outline-offset:-3px;
+}
+.prob-images {
+  display:flex; flex-wrap:wrap; gap:4px;
+  padding:4px 8px 0; flex-shrink:0;
+}
+.prob-img-item {
+  position:relative; display:inline-flex;
+  border:1.5px solid var(--border); border-radius:4px; overflow:hidden;
+}
+.prob-img-item img {
+  max-width:100%; max-height:120px;
+  object-fit:contain; display:block;
+}
+.prob-img-del {
+  position:absolute; top:2px; right:2px;
+  width:18px; height:18px; border-radius:50%;
+  background:rgba(0,0,0,.65); color:white;
+  border:none; cursor:pointer; font-size:10px;
+  display:flex; align-items:center; justify-content:center;
+  line-height:1;
+}
+.prob-drop-hint {
+  display:none; /* JS로 제어 */
+  position:absolute; bottom:6px; left:0; right:0;
+  text-align:center; font-size:.7rem; color:#94a3b8;
+  pointer-events:none; user-select:none;
+}
+.problem-drop-zone:not(:has(.prob-img-item)) .prob-drop-hint { display:block; }
+
+/* 이미지 업로드 버튼 (sec-bar 안) */
+.img-upload-btn {
+  cursor:pointer; background:rgba(255,255,255,.18);
+  color:white; font-size:.65rem; font-weight:700;
+  padding:2px 7px; border-radius:3px;
+  display:flex; align-items:center; gap:3px;
+  transition:background .1s; white-space:nowrap;
+}
+.img-upload-btn:hover { background:rgba(255,255,255,.3); }
+.img-clear-btn {
+  background:rgba(220,38,38,.5); color:white;
+  border:none; border-radius:3px; cursor:pointer;
+  font-size:.65rem; padding:2px 5px;
+}
+.img-clear-btn:hover { background:rgba(220,38,38,.8); }
+
+/* 인쇄 시 드롭힌트/버튼 숨김 */
+@media print {
+  .prob-drop-hint,.img-upload-btn,.img-clear-btn { display:none !important; }
+  .prob-img-del { display:none !important; }
+  .prob-images { padding:4px 8px; }
+}
+
+.formula-body { display:grid; grid-template-columns:1fr 1fr; flex:1; min-height:0; }
+.formula-cell { padding:6px 10px; display:flex; flex-direction:column; gap:3px; overflow:hidden; }
+.formula-cell:first-child { border-right:1.5px dashed var(--border); }
+.formula-label { font:700 .62rem/1 'Noto Sans KR'; color:var(--gray-light); letter-spacing:.05em; flex-shrink:0; }
+.formula-input { border:none; outline:none; font:500 .85rem/1.6 'Noto Sans KR'; color:var(--ink); width:100%; background:transparent; resize:none; flex:1; }
+
+/* ── 푸터 ── */
+.page-footer { flex-shrink:0; padding-top:5px; border-top:1.5px solid var(--ink); display:flex; align-items:center; }
+.footer-brand { font:700 .72rem/1 'Noto Serif KR'; color:var(--ink); }
+.footer-brand .tel { font:400 .68rem/1 'Noto Sans KR'; color:var(--gray); margin-left:8px; }
+.page-num { position:absolute; bottom:6mm; right:13mm; font-size:.62rem; color:#bbb; font-family:'Noto Serif KR'; }
+
+/* ════════════════════════
+   흑백 인쇄 최적화
+════════════════════════ */
+@media print {
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .controls,.mode-badge,.install-banner,#guide-modal,#save-toast,#guide-panel { display:none !important; }
+  body { background:white; }
+  .pages { padding:0; gap:0; }
+
+  .page {
+    box-shadow:none;
+    width:210mm; height:297mm;
+    page-break-after:always;
+    page-break-inside:avoid;
+    padding:7mm 12mm 5mm;
+    gap:3px;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .page:last-child { page-break-after:avoid; }
+
+  /* 섹션 비율 유지하면서 297mm 안에 강제 수납 */
+  .problem-wrap  { flex:2 1 0; min-height:0; }
+  .solution-wrap { flex:3 1 0; min-height:0; }
+  .concept-wrap  { flex:2 1 0; min-height:0; }
+  .formula-wrap  { flex:1.4 1 0; min-height:0; }
+
+  .lined {
+    background-image: repeating-linear-gradient(
+      to bottom, transparent 0px, transparent calc(var(--line-h) - 1px),
+      #bbb calc(var(--line-h) - 1px), #bbb var(--line-h)
+    ) !important;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .sec-bar   { background:#000 !important; color:#fff !important; padding:3px 10px !important; }
+  .unit-label { background:#000 !important; padding:4px 10px !important; }
+  .hdr-badge  { background:#000 !important; }
+  [contenteditable] { outline:none !important; }
+  .draw-canvas { display:block !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- 컨트롤 패널 -->
+<div class="controls">
+  <!-- 페이지 관리 -->
+  <div class="ctrl-group">
+    <span class="ctrl-label">매수</span>
+    <input type="number" id="pageCount" value="1" min="1" max="20">
+    <button class="ctrl-btn add"   onclick="addPages(false)">＋ 생성</button>
+    <button class="ctrl-btn reset" onclick="resetPages()">↺ 초기화</button>
+  </div>
+
+  <div class="ctrl-sep"></div>
+
+  <!-- 손글씨 도구 -->
+  <div class="ctrl-group">
+    <button class="ctrl-btn pen"   id="btn-pen"   onclick="setTool('pen')">🖊 펜</button>
+    <button class="ctrl-btn hl"    id="btn-hl"    onclick="setTool('hl')">🖍 형광</button>
+    <button class="ctrl-btn erase" id="btn-erase" onclick="setTool('erase')">◻ 지우개</button>
+    <button class="ctrl-btn clear" onclick="clearCanvas()">✕</button>
+  </div>
+
+  <div class="ctrl-sep"></div>
+
+  <!-- 색상 팔레트 -->
+  <div class="palette" id="palette">
+    <div class="swatch on"  style="background:#1a40c8" data-color="#1a40c8" onclick="setColor(this)"></div>
+    <div class="swatch"     style="background:#dc2626" data-color="#dc2626" onclick="setColor(this)"></div>
+    <div class="swatch"     style="background:#000000" data-color="#000000" onclick="setColor(this)"></div>
+    <div class="swatch"     style="background:#16a34a" data-color="#16a34a" onclick="setColor(this)"></div>
+    <div class="swatch"     style="background:#7c3aed" data-color="#7c3aed" onclick="setColor(this)"></div>
+  </div>
+
+  <div class="ctrl-sep"></div>
+
+  <!-- 굵기 -->
+  <div class="thickness" id="thickness">
+    <div class="thick-btn on" data-size="1.5" onclick="setSize(this)"><div class="thick-dot" style="width:3px;height:3px"></div></div>
+    <div class="thick-btn"    data-size="3"   onclick="setSize(this)"><div class="thick-dot" style="width:6px;height:6px"></div></div>
+    <div class="thick-btn"    data-size="5"   onclick="setSize(this)"><div class="thick-dot" style="width:10px;height:10px"></div></div>
+  </div>
+
+  <div class="ctrl-sep"></div>
+
+  <!-- 저장 -->
+  <div class="ctrl-group">
+    <button class="ctrl-btn save-img" onclick="saveImage()">🖼 이미지저장</button>
+    <button class="ctrl-btn save-pdf" onclick="savePDF()">📄 PDF저장</button>
+    <button class="ctrl-btn print"    onclick="window.print()">🖨 인쇄</button>
+    <button class="ctrl-btn" style="background:#c9a84c;color:#111;font-weight:800;" onclick="location.href='index.html'">🏠 메인</button>
+  </div>
+
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn github" onclick="showGuide()">📲 홈화면추가</button>
+</div>
+
+<!-- 홈화면 추가 가이드 모달 -->
+<div id="guide-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;overflow-y:auto;padding:20px;">
+  <div style="background:#1e293b;border-radius:16px;max-width:420px;margin:20px auto;padding:24px;color:white;font-size:.85rem;line-height:1.7;">
+    <div style="font:800 1.1rem/1 'Noto Serif KR';color:#f59e0b;margin-bottom:16px;">📲 홈화면 바로가기 추가 방법</div>
+
+    <div style="background:#0f172a;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="color:#f59e0b;font-weight:700;margin-bottom:6px;">🍎 iPhone / iPad (Safari)</div>
+      <div>① Safari에서 이 페이지 열기<br>
+      ② 하단 <b style="color:#60a5fa">공유 버튼 (□↑)</b> 탭<br>
+      ③ <b style="color:#60a5fa">홈 화면에 추가</b> 선택<br>
+      ④ 추가 → 홈화면에 아이콘 생성 ✅</div>
+    </div>
+
+    <div style="background:#0f172a;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="color:#4ade80;font-weight:700;margin-bottom:6px;">🤖 Android (Chrome)</div>
+      <div>① Chrome에서 이 페이지 열기<br>
+      ② 우측 상단 <b style="color:#60a5fa">⋮ 메뉴</b> 탭<br>
+      ③ <b style="color:#60a5fa">홈 화면에 추가</b> 또는 <b style="color:#60a5fa">앱 설치</b><br>
+      ④ 추가 → 홈화면에 아이콘 생성 ✅</div>
+    </div>
+
+    <div style="background:#0f172a;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="color:#c084fc;font-weight:700;margin-bottom:6px;">🐙 깃허브 Pages로 배포하기</div>
+      <div style="color:#94a3b8;font-size:.78rem;">
+      ① github.com 가입 후 새 저장소 생성<br>
+      ② <b style="color:#e2e8f0">index.html</b> 로 파일명 변경 후 업로드<br>
+      ③ Settings → Pages → Branch: main → Save<br>
+      ④ <b style="color:#60a5fa">https://아이디.github.io/저장소명</b> 으로 접속<br>
+      ⑤ 위의 홈화면 추가 방법으로 설치 ✅<br><br>
+      <span style="color:#f59e0b;">✨ HTTPS라서 PWA 완전 동작, 카톡 공유도 가능!</span>
+      </div>
+    </div>
+
+    <button onclick="document.getElementById('guide-modal').style.display='none'"
+      style="width:100%;padding:10px;background:#f59e0b;color:#111;border:none;border-radius:8px;font:700 .9rem/1 'Noto Sans KR';cursor:pointer;">
+      닫기
+    </button>
+  </div>
+</div>
+
+<!-- 저장 진행 토스트 -->
+<div id="save-toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#1e293b;color:white;padding:10px 22px;border-radius:20px;
+  font-size:.8rem;font-weight:600;z-index:400;box-shadow:0 4px 16px rgba(0,0,0,.4);white-space:nowrap;"></div>
+
+<!-- PWA 설치 안내 배너 -->
+<div class="install-banner" id="install-banner">
+  📲 <b>앱으로 설치하면 더 편리해요!</b><br>
+  <span style="color:#94a3b8;font-size:.7rem;">
+    iOS: 공유버튼 → 홈 화면에 추가<br>
+    Android: 브라우저 메뉴 → 앱 설치
+  </span>
+  <br><button class="close-btn" onclick="document.getElementById('install-banner').style.display='none'">닫기</button>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     사용법 & 학습법 아코디언 패널
+══════════════════════════════════════ -->
+<div id="guide-panel" style="
+  width:210mm;
+  border-radius:10px; overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);
+  font-family:'Noto Sans KR',sans-serif;
+  flex-shrink:0;
+">
+  <!-- 헤더 토글 -->
+  <button onclick="toggleGuidePanel()" id="guide-toggle" style="
+    width:100%; display:flex; align-items:center; justify-content:space-between;
+    background:#1e293b; color:white; border:none; cursor:pointer;
+    padding:12px 18px; font:700 .88rem/1 'Noto Sans KR';
+    gap:8px;
+  ">
+    <span style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#f59e0b;color:#111;font-weight:900;font-size:.7rem;padding:2px 8px;border-radius:4px;">시대학원</span>
+      📖 수학 개념노트 사용법 &amp; 효과적인 학습 가이드
+    </span>
+    <span id="guide-arrow" style="font-size:1rem;transition:transform .3s;transform:rotate(-90deg);">▼</span>
+  </button>
+
+  <!-- 본문 (기본 펼침) -->
+  <div id="guide-body" style="background:#f8fafc;overflow:hidden;transition:max-height .4s ease;max-height:0px;">
+    <div style="padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:.8rem;line-height:1.75;color:#1e293b;">
+
+      <!-- 1. 노트 구성 설명 -->
+      <div style="grid-column:1/-1;background:#1e293b;color:white;border-radius:8px;padding:14px 18px;">
+        <div style="font:800 .9rem/1 'Noto Serif KR';color:#f59e0b;margin-bottom:10px;">📋 이 노트의 구성</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:.75rem;">
+          <div style="background:#0f172a;border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1.2rem;margin-bottom:4px;">❓</div>
+            <div style="font-weight:700;color:#60a5fa;margin-bottom:3px;">문제란</div>
+            <div style="color:#94a3b8;font-size:.68rem;">예제·확인문제<br>이미지 첨부 가능</div>
+          </div>
+          <div style="background:#0f172a;border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1.2rem;margin-bottom:4px;">✏️</div>
+            <div style="font-weight:700;color:#34d399;margin-bottom:3px;">풀이란</div>
+            <div style="color:#94a3b8;font-size:.68rem;">풀이 과정<br>손글씨 병행 가능</div>
+          </div>
+          <div style="background:#0f172a;border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1.2rem;margin-bottom:4px;">📌</div>
+            <div style="font-weight:700;color:#f472b6;margin-bottom:3px;">핵심개념</div>
+            <div style="color:#94a3b8;font-size:.68rem;">원리·정의·조건<br>나만의 언어로</div>
+          </div>
+          <div style="background:#0f172a;border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1.2rem;margin-bottom:4px;">📐</div>
+            <div style="font-weight:700;color:#fbbf24;margin-bottom:3px;">공식·정리</div>
+            <div style="color:#94a3b8;font-size:.68rem;">핵심 공식<br>조건·주의사항</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 입력 방법 -->
+      <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:14px 16px;">
+        <div style="font:700 .82rem/1 'Noto Sans KR';color:#1d4ed8;border-bottom:2px solid #dbeafe;padding-bottom:7px;margin-bottom:10px;">
+          ⌨️ 입력 방법
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:.76rem;">
+          <div><b style="color:#1d4ed8;">📝 텍스트 입력</b><br>
+          각 칸을 클릭하면 바로 타이핑 가능. 수식은 기호(√, ∞, ≤)를 복사해서 붙여넣기.</div>
+          <div><b style="color:#1d4ed8;">🖼 이미지 첨부</b><br>
+          문제란 상단 <b>📁 이미지</b> 버튼으로 파일 선택, 또는 이미지를 문제란으로 <b>드래그</b>. 모바일에서는 카메라 촬영도 가능.</div>
+          <div><b style="color:#1d4ed8;">📋 클립보드 붙여넣기</b><br>
+          문제란 클릭 후 <b>Ctrl+V</b> (PC) 또는 길게 누르기→붙여넣기 (모바일)로 캡처 이미지 삽입.</div>
+        </div>
+      </div>
+
+      <!-- 3. 손글씨 사용법 -->
+      <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:14px 16px;">
+        <div style="font:700 .82rem/1 'Noto Sans KR';color:#7c3aed;border-bottom:2px solid #ede9fe;padding-bottom:7px;margin-bottom:10px;">
+          🖊 손글씨·필기 도구
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:.76rem;">
+          <div><b style="color:#7c3aed;">펜 모드</b> — 상단 🖊 버튼 활성화 후 화면에 직접 필기. 스타일러스/손가락 모두 지원.</div>
+          <div><b style="color:#b45309;">형광펜</b> — 🖍 버튼으로 반투명 형광 표시. 중요 개념이나 공식에 활용.</div>
+          <div><b style="color:#dc2626;">지우개</b> — ◻ 버튼으로 손글씨 부분 삭제. ✕로 전체 삭제.</div>
+          <div><b>색상·굵기</b> — 색상 점(🔵🔴⚫🟢🟣)과 굵기 버튼으로 조절.</div>
+          <div style="background:#fef3c7;border-radius:4px;padding:5px 8px;color:#92400e;">
+            💡 손글씨 모드 켜면 텍스트 편집이 잠깁니다. 다시 버튼 누르면 해제.</div>
+        </div>
+      </div>
+
+      <!-- 4. 효과적인 개념 정리법 -->
+      <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:14px 16px;">
+        <div style="font:700 .82rem/1 'Noto Sans KR';color:#059669;border-bottom:2px solid #d1fae5;padding-bottom:7px;margin-bottom:10px;">
+          🧠 효과적인 개념 정리법
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:.76rem;">
+          <div style="display:flex;gap:8px;">
+            <span style="background:#059669;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;">1</span>
+            <div><b>문제 먼저, 이해는 나중에</b><br>문제를 먼저 읽고 어디서 막히는지 확인한 뒤 개념 정리.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <span style="background:#059669;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;">2</span>
+            <div><b>나만의 언어로 재서술</b><br>교재 문장을 그대로 옮기지 말고 본인이 이해한 방식으로 작성.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <span style="background:#059669;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;">3</span>
+            <div><b>조건·예외를 반드시 기록</b><br>"n ≥ 1일 때", "a ≠ 0이면" 같은 조건이 오답의 원인.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <span style="background:#059669;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;">4</span>
+            <div><b>풀이 흐름을 단계별 번호로</b><br>①②③ 순서로 작성하면 나중에 복습할 때 빠르게 파악.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 저장·출력 방법 -->
+      <div style="background:white;border:1.5px solid #e2e8f0;border-radius:8px;padding:14px 16px;">
+        <div style="font:700 .82rem/1 'Noto Sans KR';color:#0e7490;border-bottom:2px solid #cffafe;padding-bottom:7px;margin-bottom:10px;">
+          💾 저장 &amp; 출력 방법
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:.76rem;">
+          <div><b style="color:#0e7490;">🖼 이미지 저장</b> — PNG 고해상도로 페이지별 저장. 카톡·메모앱에 바로 공유 가능.</div>
+          <div><b style="color:#7e22ce;">📄 PDF 저장</b> — 전체 페이지를 A4 PDF 한 파일로. 프린트·디지털 보관용.</div>
+          <div><b style="color:#166534;">🖨 인쇄</b> — 브라우저 인쇄 대화상자. 여백을 <b>없음</b>으로 설정하면 한 장에 딱 맞게 출력.</div>
+          <div style="background:#f0fdf4;border-radius:4px;padding:5px 8px;color:#166534;">
+            💡 인쇄 전 <b>배경 그래픽 인쇄</b> 옵션 체크하면 줄선이 출력됩니다.</div>
+        </div>
+      </div>
+
+      <!-- 6. 복습 사이클 -->
+      <div style="grid-column:1/-1;background:linear-gradient(135deg,#1e3a5f,#1e293b);color:white;border-radius:8px;padding:14px 18px;">
+        <div style="font:700 .82rem/1 'Noto Sans KR';color:#60a5fa;margin-bottom:10px;">🔄 에빙하우스 망각곡선 기반 복습 사이클</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:.72rem;">
+          <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1rem;margin-bottom:3px;">📅</div>
+            <div style="font-weight:700;color:#fbbf24;">당일</div>
+            <div style="color:#94a3b8;margin-top:3px;">노트 작성 직후<br>전체 훑어보기<br><span style="color:#34d399;">기억률 100%</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1rem;margin-bottom:3px;">📅</div>
+            <div style="font-weight:700;color:#fbbf24;">1일 후</div>
+            <div style="color:#94a3b8;margin-top:3px;">핵심개념만<br>빠르게 확인<br><span style="color:#34d399;">기억률 회복</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1rem;margin-bottom:3px;">📅</div>
+            <div style="font-weight:700;color:#fbbf24;">7일 후</div>
+            <div style="color:#94a3b8;margin-top:3px;">문제 다시 풀기<br>풀이 비교<br><span style="color:#34d399;">장기기억화</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:10px 6px;">
+            <div style="font-size:1rem;margin-bottom:3px;">📅</div>
+            <div style="font-weight:700;color:#fbbf24;">시험 전</div>
+            <div style="color:#94a3b8;margin-top:3px;">공식·조건 위주<br>빠른 점검<br><span style="color:#34d399;">최종 확인</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+  </div><!-- /guide-body -->
+</div><!-- /guide-panel (JS로 pages 안에 prepend됨) -->
+
+<div class="pages" id="pages"></div>
+
+<script>
+/* ══════════════════════════════════════
+   상태
+══════════════════════════════════════ */
+let totalPages = 0;
+let tool = null;          // 'pen' | 'hl' | 'erase' | null
+let penColor = '#1a40c8';
+let penSize  = 1.5;
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let lastPressure = 0.5;
+let activeCanvas = null;
+
+/* ══════════════════════════════════════
+   PWA Service Worker 인라인 등록
+══════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'sidaenote-v1';
+    const ASSETS = [self.location.href];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(clients.claim());
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        caches.match(e.request).then(r => r || fetch(e.request))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
+/* ══════════════════════════════════════
+   데모 데이터
+══════════════════════════════════════ */
+const DEMO = {
+  name:'김시대', date:'2026-03-05', book:'수학의 정석',
+  unit:'수열의 극한',
+  problem:`실수 a, b에 대하여\n\nlim(n→∞) (√(n²+an) + bn − 4) = 5\n\n가 성립할 때,  a + b 의 값을 구하시오.`,
+  solution:`[풀이]\n\n① √(n²+an) = n√(1+a/n) ≈ n + a/2  (n→∞)\n\n② √(n²+an) + bn ≈ (1+b)n + a/2\n\n③ 극한이 유한값 → n의 계수 = 0\n   1 + b = 0  →  b = −1\n\n④ 상수항:  a/2 − 4 = 5  →  a = 18\n\n∴  a + b = 18 + (−1) = 17`,
+  concept:`◆ 무리함수 극한 (유리화 핵심)\n  √(n²+an) = n·√(1+a/n) 변환 후 근사\n  lim n·(√(1+a/n) − 1) = a/2\n\n◆ 극한값 존재 조건\n  최고차항 계수 = 0 → 유한 극한`,
+  f1:`√(n²+an) ≈ n + a/2\n(n→∞ 근사식)`,
+  f2:`극한 존재 조건:\n발산항의 계수 = 0`
+};
+
+/* ══════════════════════════════════════
+   페이지 생성
+══════════════════════════════════════ */
+function createPage(num, demo) {
+  const d = demo ? DEMO : {};
+  return `
+  <div class="page" id="page-${num}">
+    <canvas class="draw-canvas" id="canvas-${num}"></canvas>
+
+    <div class="page-header">
+      <div class="hdr-left">
+        <div class="hdr-badge">시대</div>
+        <div class="hdr-title">수학 개념노트</div>
+      </div>
+      <div class="hdr-right">
+        <div class="meta-field">이름 <input value="${d.name||''}" placeholder=""></div>
+        <div class="meta-field">날짜 <input value="${d.date||''}" placeholder=""></div>
+        <div class="meta-field">교재 <input class="wide" value="${d.book||''}" placeholder=""></div>
+      </div>
+    </div>
+
+    <div class="unit-bar">
+      <span class="unit-label">단 원</span>
+      <input class="unit-input" value="${d.unit||''}" placeholder="단원명을 입력하세요">
+    </div>
+
+    <div class="problem-wrap">
+      <div class="sec-bar">
+        <span class="tag">문제</span> 확인 문제 · 예제
+        <span style="margin-left:auto;display:flex;gap:4px;">
+          <label class="img-upload-btn" title="이미지 파일 선택">
+            📁 이미지
+            <input type="file" accept="image/*" style="display:none"
+              onchange="insertProblemImage(this, ${num})">
+          </label>
+          <button class="img-clear-btn" onclick="clearProblemImages(${num})" title="이미지 모두 삭제">🗑</button>
+        </span>
+      </div>
+      <div class="problem-drop-zone" id="prob-zone-${num}"
+        ondragover="probDragOver(event)" ondragleave="probDragLeave(event)"
+        ondrop="probDrop(event,${num})">
+        <div class="prob-images" id="prob-imgs-${num}"></div>
+        <div class="lined problem-area" contenteditable="true"
+          id="prob-text-${num}">${(d.problem||'').replace(/\n/g,'<br>')}
+        </div>
+        <div class="prob-drop-hint" id="prob-hint-${num}">
+          🖼 여기에 이미지를 드래그하거나 📁 버튼으로 추가
+        </div>
+      </div>
+    </div>
+
+    <div class="solution-wrap">
+      <div class="sec-bar"><span class="tag">풀이</span> 풀이 · 답</div>
+      <div class="lined solution-area" contenteditable="true">${(d.solution||'').replace(/\n/g,'<br>')}</div>
+    </div>
+
+    <div class="concept-wrap">
+      <div class="sec-bar"><span class="tag">개념</span> 핵심 개념 정리</div>
+      <div class="lined concept-area" contenteditable="true">${(d.concept||'').replace(/\n/g,'<br>')}</div>
+    </div>
+
+    <div class="formula-wrap">
+      <div class="sec-bar"><span class="tag">공식</span> 공식 · 정리</div>
+      <div class="formula-body">
+        <div class="formula-cell">
+          <div class="formula-label">① 공식</div>
+          <textarea class="formula-input">${d.f1||''}</textarea>
+        </div>
+        <div class="formula-cell">
+          <div class="formula-label">② 정리 · 조건</div>
+          <textarea class="formula-input">${d.f2||''}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <div class="footer-brand">중고등부 수학전문 시대학원<span class="tel">☎ 031-978-1117</span></div>
+    </div>
+    <div class="page-num">${num}</div>
+  </div>`;
+}
+
+function addPages(demo) {
+  const n = parseInt(document.getElementById('pageCount').value)||1;
+  const ct = document.getElementById('pages');
+  for (let i=0;i<n;i++) {
+    totalPages++;
+    ct.insertAdjacentHTML('beforeend', createPage(totalPages, demo&&i===0));
+    initCanvas(totalPages);
+  }
+}
+function resetPages() {
+  if (!confirm('초기화하시겠습니까?')) return;
+  totalPages=0;
+  document.getElementById('pages').innerHTML='';
+  addPages(false);
+}
+
+/* ══════════════════════════════════════
+   캔버스 초기화 — Touch + Mouse 완전 호환
+   (카톡 인앱브라우저, iOS Safari, Android Chrome 모두 지원)
+══════════════════════════════════════ */
+function initCanvas(num) {
+  const page   = document.getElementById('page-' + num);
+  const canvas = document.getElementById('canvas-' + num);
+  if (!page || !canvas) return;
+
+  function setSize() {
+    const r = page.getBoundingClientRect();
+    const w = Math.round(r.width);
+    const h = Math.round(r.height);
+    if (canvas.width === w && canvas.height === h) return;
+    // 내용 보존
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width; tmp.height = canvas.height;
+    if (canvas.width > 0 && canvas.height > 0)
+      tmp.getContext('2d').drawImage(canvas, 0, 0);
+    canvas.width  = w;
+    canvas.height = h;
+    if (tmp.width > 0 && tmp.height > 0)
+      canvas.getContext('2d').drawImage(tmp, 0, 0, w, h);
+  }
+  setSize();
+  window.addEventListener('resize', () => setTimeout(setSize, 150));
+
+  /* 좌표 계산 */
+  function pos(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    return { x: clientX - r.left, y: clientY - r.top };
+  }
+
+  /* 스타일 적용 */
+  function applyCtx(ctx) {
+    ctx.lineCap  = 'round';
+    ctx.lineJoin = 'round';
+    if (tool === 'erase') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth  = 30;
+      ctx.globalAlpha = 1;
+    } else if (tool === 'hl') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = penColor;
+      ctx.lineWidth   = 18;
+      ctx.globalAlpha = 0.35;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = penColor;
+      ctx.lineWidth   = penSize;
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function startAt(x, y) {
+    if (!tool) return false;
+    isDrawing    = true;
+    activeCanvas = canvas;
+    lastX = x; lastY = y;
+    // 점 찍기
+    const ctx = canvas.getContext('2d');
+    applyCtx(ctx);
+    ctx.beginPath();
+    ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    if (tool !== 'hl') {
+      if (tool === 'erase') {
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.fillStyle = penColor;
+      }
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    return true;
+  }
+
+  function moveTo(x, y) {
+    if (!isDrawing || activeCanvas !== canvas) return;
+    const ctx = canvas.getContext('2d');
+    applyCtx(ctx);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    lastX = x; lastY = y;
+  }
+
+  /* ── Mouse Events (PC, 일부 인앱) ── */
+  canvas.addEventListener('mousedown', e => {
+    e.preventDefault();
+    const p = pos(e.clientX, e.clientY);
+    startAt(p.x, p.y);
+  });
+  canvas.addEventListener('mousemove', e => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const p = pos(e.clientX, e.clientY);
+    moveTo(p.x, p.y);
+  });
+  canvas.addEventListener('mouseup',    () => stopDraw());
+  canvas.addEventListener('mouseleave', () => stopDraw());
+
+  /* ── Touch Events (모바일/태블릿/카톡 인앱) ── */
+  canvas.addEventListener('touchstart', e => {
+    if (!tool) return;
+    e.preventDefault();    // 스크롤 차단
+    e.stopPropagation();
+    const t = e.changedTouches[0];
+    const p = pos(t.clientX, t.clientY);
+    startAt(p.x, p.y);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    if (!isDrawing || activeCanvas !== canvas) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const t = e.changedTouches[0];
+    const p = pos(t.clientX, t.clientY);
+    moveTo(p.x, p.y);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend',    e => { e.preventDefault(); stopDraw(); }, { passive: false });
+  canvas.addEventListener('touchcancel', e => { e.preventDefault(); stopDraw(); }, { passive: false });
+}
+
+function stopDraw() {
+  isDrawing    = false;
+  activeCanvas = null;
+}
+
+/* ══════════════════════════════════════
+   도구 선택
+══════════════════════════════════════ */
+function setTool(t) {
+  tool = (tool === t) ? null : t;
+  updateUI();
+}
+function setColor(el) {
+  penColor = el.dataset.color;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('on'));
+  el.classList.add('on');
+}
+function setSize(el) {
+  penSize = parseFloat(el.dataset.size);
+  document.querySelectorAll('.thick-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+function clearCanvas() {
+  if (!confirm('모든 손글씨를 지우시겠습니까?')) return;
+  document.querySelectorAll('.draw-canvas').forEach(c => {
+    c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  });
+}
+
+function updateUI() {
+  const on = tool !== null;
+
+  ['pen','hl','erase'].forEach(t => {
+    const btn = document.getElementById('btn-' + t);
+    if (btn) btn.classList.toggle('on', tool === t);
+  });
+
+  /* 캔버스: 도구 켜지면 pointer-events 활성 */
+  document.querySelectorAll('.draw-canvas').forEach(c => {
+    c.classList.toggle('active', on);
+    // style로도 직접 지정 (인앱브라우저 클래스 미적용 대비)
+    c.style.pointerEvents = on ? 'all' : 'none';
+    c.style.zIndex = on ? '20' : '-1';
+  });
+
+  /* 텍스트 편집 토글 */
+  document.querySelectorAll('[contenteditable]').forEach(el => {
+    el.contentEditable = on ? 'false' : 'true';
+  });
+  document.querySelectorAll('input:not([type=number]), textarea').forEach(el => {
+    el.disabled = on;
+  });
+
+  /* 배지 */
+  const badge = document.getElementById('mode-badge');
+  if (!badge) return;
+  if (!on) { badge.className = 'mode-badge'; return; }
+  const labels = { pen:'✏️ 펜 모드 켜짐 — 화면에 써보세요!', hl:'🖍 형광펜 모드', erase:'◻ 지우개 모드' };
+  const cls    = { pen:'pen-mode', hl:'hl-mode', erase:'erase-mode' };
+  badge.textContent = labels[tool];
+  badge.className   = `mode-badge show ${cls[tool]}`;
+}
+
+/* ══════════════════════════════════════
+   문제란 이미지 삽입
+══════════════════════════════════════ */
+function addProblemImage(pageNum, src) {
+  const container = document.getElementById('prob-imgs-' + pageNum);
+  if (!container) return;
+
+  const item = document.createElement('div');
+  item.className = 'prob-img-item';
+
+  const img = document.createElement('img');
+  img.src = src;
+  img.style.maxHeight = '130px';
+
+  // 리사이즈 핸들 (드래그로 크기 조절)
+  img.style.cursor = 'nwse-resize';
+  let resizing = false, startX, startW;
+  img.addEventListener('mousedown', e => {
+    if (e.offsetX > img.clientWidth - 12 && e.offsetY > img.clientHeight - 12) {
+      resizing = true; startX = e.clientX; startW = img.clientWidth;
+      e.preventDefault();
+    }
+  });
+  document.addEventListener('mousemove', e => {
+    if (!resizing) return;
+    const nw = Math.max(60, startW + e.clientX - startX);
+    img.style.maxHeight = 'none';
+    img.style.width = nw + 'px';
+  });
+  document.addEventListener('mouseup', () => resizing = false);
+
+  const del = document.createElement('button');
+  del.className = 'prob-img-del';
+  del.textContent = '✕';
+  del.onclick = () => item.remove();
+
+  item.appendChild(img);
+  item.appendChild(del);
+  container.appendChild(item);
+}
+
+function insertProblemImage(input, pageNum) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => addProblemImage(pageNum, e.target.result);
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function clearProblemImages(pageNum) {
+  const c = document.getElementById('prob-imgs-' + pageNum);
+  if (c && c.children.length > 0) {
+    if (confirm('문제 이미지를 모두 삭제하시겠습니까?')) c.innerHTML = '';
+  }
+}
+
+/* 드래그앤드롭 */
+function probDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.add('drag-over');
+}
+function probDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+function probDrop(e, pageNum) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => addProblemImage(pageNum, ev.target.result);
+    reader.readAsDataURL(file);
+  });
+
+  // 클립보드 이미지 붙여넣기 (dataTransfer items)
+  if (!files.length) {
+    Array.from(e.dataTransfer.items || []).forEach(item => {
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        const f = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = ev => addProblemImage(pageNum, ev.target.result);
+        reader.readAsDataURL(f);
+      }
+    });
+  }
+}
+
+/* Ctrl+V 붙여넣기로 이미지 삽입 */
+document.addEventListener('paste', e => {
+  const items = Array.from(e.clipboardData?.items || []);
+  const imgItem = items.find(i => i.type.startsWith('image/'));
+  if (!imgItem) return;
+
+  // 포커스된 문제란의 페이지 번호 찾기
+  const focused = document.activeElement;
+  const zone = focused?.closest('.problem-drop-zone');
+  if (!zone) return;
+
+  e.preventDefault();
+  const file = imgItem.getAsFile();
+  const reader = new FileReader();
+  const pageEl = zone.closest('.page');
+  const pageNum = pageEl?.id?.replace('page-', '');
+  if (!pageNum) return;
+  reader.onload = ev => addProblemImage(pageNum, ev.target.result);
+  reader.readAsDataURL(file);
+});
+
+
+function toast(msg, duration=2500) {
+  const el = document.getElementById('save-toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.style.display='none', duration);
+}
+
+/* ══════════════════════════════════════
+   홈화면 추가 가이드
+══════════════════════════════════════ */
+function showGuide() {
+  document.getElementById('guide-modal').style.display = 'block';
+}
+
+/* ══════════════════════════════════════
+   페이지를 고해상도 캔버스로 합성
+══════════════════════════════════════ */
+async function renderPageToCanvas(pageEl, scale=2) {
+  // html2canvas 동적 로드
+  if (!window.html2canvas) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  // 손글씨 캔버스를 숨기지 않고 그대로 캡처
+  const captured = await html2canvas(pageEl, {
+    scale: scale,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    ignoreElements: el => el.classList.contains('controls') || el.id === 'guide-modal' || el.id === 'save-toast' || el.classList.contains('mode-badge') || el.classList.contains('install-banner')
+  });
+  return captured;
+}
+
+/* ══════════════════════════════════════
+   이미지 저장 (PNG, 고해상도 2x)
+══════════════════════════════════════ */
+async function saveImage() {
+  const pages = document.querySelectorAll('.page');
+  if (!pages.length) return;
+  toast('🖼 이미지 생성 중...', 10000);
+  try {
+    for (let i=0; i<pages.length; i++) {
+      const c = await renderPageToCanvas(pages[i], 2);
+      const link = document.createElement('a');
+      link.download = `시대학원_개념노트_${i+1}p.png`;
+      link.href = c.toDataURL('image/png');
+      link.click();
+      await new Promise(r => setTimeout(r, 400));
+    }
+    toast(`✅ ${pages.length}장 이미지 저장 완료!`);
+  } catch(e) {
+    toast('❌ 저장 실패: ' + e.message);
+  }
+}
+
+/* ══════════════════════════════════════
+   PDF 저장 (jsPDF + html2canvas)
+══════════════════════════════════════ */
+async function savePDF() {
+  const pages = document.querySelectorAll('.page');
+  if (!pages.length) return;
+  toast('📄 PDF 생성 중...', 15000);
+
+  // jsPDF 동적 로드
+  if (!window.jspdf) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pW = 210, pH = 297;
+
+    for (let i=0; i<pages.length; i++) {
+      if (i > 0) pdf.addPage();
+      const c = await renderPageToCanvas(pages[i], 2);
+      const imgData = c.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pW, pH);
+    }
+
+    pdf.save('시대학원_개념노트.pdf');
+    toast('✅ PDF 저장 완료!');
+  } catch(e) {
+    toast('❌ PDF 실패: ' + e.message);
+  }
+}
+
+/* ══════════════════════════════════════
+   PWA 설치 안내 (standalone이 아닐 때)
+══════════════════════════════════════ */
+function checkPWA() {
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  if (!isStandalone && !sessionStorage.getItem('pwa-dismissed')) {
+    setTimeout(() => {
+      document.getElementById('install-banner').style.display = 'block';
+    }, 3000);
+  }
+  document.querySelector('.close-btn').addEventListener('click', () => {
+    sessionStorage.setItem('pwa-dismissed','1');
+  });
+}
+
+/* ── 초기 실행 ── */
+// 가이드 패널을 pages 컨테이너 안으로 이동 (컨트롤바에 가리지 않도록)
+(function() {
+  const panel = document.getElementById('guide-panel');
+  const pages = document.getElementById('pages');
+  if (panel && pages) pages.prepend(panel);
+})();
+
+addPages(true);   // 데모 1페이지
+checkPWA();
+
+/* ══════════════════════════════════════
+   사용법 패널 토글
+══════════════════════════════════════ */
+function toggleGuidePanel() {
+  const body  = document.getElementById('guide-body');
+  const arrow = document.getElementById('guide-arrow');
+  const isOpen = body.style.maxHeight !== '0px';
+  body.style.maxHeight  = isOpen ? '0px' : '2000px';
+  arrow.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+}
+</script>
+</body>
+</html>
