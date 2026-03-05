@@ -76,13 +76,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);overscroll-behav
 .pages{
   padding-top:calc(54px + env(safe-area-inset-top));
   padding-bottom:48px;
-  display:flex;flex-direction:column;align-items:center;gap:24px;min-width:fit-content;
+  display:flex;flex-direction:column;gap:24px;
   padding-left:12px;padding-right:12px;
 }
 
 /* ══ A4 페이지 ══ */
 .page{
-  width:210mm;height:297mm;background:white;
+  width:210mm;height:297mm;background:white;margin:0 auto;
   box-shadow:0 4px 20px rgba(0,0,0,.2);
   padding:7mm 12mm 5mm;
   position:relative;
@@ -310,7 +310,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);overscroll-behav
 </div>
 
 <!-- 사용 매뉴얼 아코디언 -->
-<div id="guide-panel" style="width:210mm;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:'Noto Sans KR',sans-serif;flex-shrink:0;">
+<div id="guide-panel" style="width:210mm;margin:0 auto;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:'Noto Sans KR',sans-serif;flex-shrink:0;">
   <button onclick="toggleGuide()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:#1e293b;color:white;border:none;cursor:pointer;padding:12px 18px;font:700 .88rem/1 'Noto Sans KR';gap:8px;">
     <span style="display:flex;align-items:center;gap:8px;">
       <span style="background:#1d4ed8;color:white;font-weight:900;font-size:.7rem;padding:2px 8px;border-radius:4px;">시대학원</span>
